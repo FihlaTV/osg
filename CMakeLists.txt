@@ -267,7 +267,7 @@ IF(APPLE)
 
         #the below is taken from ogre, it states the gcc stuff needs to happen before PROJECT() is called. I've no clue if we even need it
         # Force gcc <= 4.2 on iPhone
-        IF(IPHONE_VERSION_MIN LESS "6.0")
+        IF(IPHONE_VERSION_MIN LESS "5.1.1")
             include(CMakeForceCompiler)
             CMAKE_FORCE_C_COMPILER(llvm-gcc-4.2 GNU)
             CMAKE_FORCE_CXX_COMPILER(llvm-gcc-4.2 GNU)
@@ -844,9 +844,12 @@ ELSEIF(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 
         IF (APPLE)
             # set standard lib, clang defaults to c++0x
-            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++98")
-            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++98 -stdlib=libstdc++ -Wno-overloaded-virtual -Wno-conversion")
+            #set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++98")
+            #set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
+            #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++98 -stdlib=libstdc++ -Wno-overloaded-virtual -Wno-conversion")
+            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -stdlib=libc++ -Wno-overloaded-virtual -Wno-conversion")
             set(WARNING_CFLAGS "")
         ENDIF()
 ENDIF()
@@ -908,7 +911,7 @@ IF(APPLE AND NOT ANDROID)
 
         #set iphone arch and flags taken from http://sites.google.com/site/michaelsafyan/coding/resources/how-to-guides/cross-compile-for-the-iphone/how-to-cross-compile-for-the-iphone-using-cmake
         IF(OSG_BUILD_PLATFORM_IPHONE)
-            IF(${IPHONE_VERSION_MIN} LESS "7.0")
+            IF(${IPHONE_VERSION_MIN} LESS "5.1.1")
                 SET(CMAKE_OSX_ARCHITECTURES "armv6;armv7" CACHE STRING "Build architectures for iOS" FORCE)
                 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IPHONE_VERSION_MIN} -mno-thumb -pipe -no-cpp-precomp" CACHE STRING "Flags used by the compiler during all build types." FORCE)
             ELSE()
