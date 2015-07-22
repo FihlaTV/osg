@@ -66,11 +66,12 @@ MACRO(ANDROID_3RD_PARTY)
     ################################################
     #JPEG
     ################################################
-    FIND_PATH(JPEG_INCLUDE_DIR Android.mk
+    FIND_PATH(JPEG_INCLUDE_DIR jpeglib.h
         ${CMAKE_SOURCE_DIR}/3rdparty/libjpeg
+        NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH
     )
     #set(ENV{AND_OSG_LIB_NAMES} "$ENV{AND_OSG_LIB_NAMES} libjpeg")
-    #set(ENV{AND_OSG_LIB_PATHS} "$ENV{AND_OSG_LIB_PATHS}include ${JPEG_INCLUDE_DIR}/Android.mk \n")
+    #set(ENV{AND_OSG_LIB_PATHS} "$ENV{AND_OSG_LIB_PATHS}include ${JPEG_INCLUDE_DIR}/jni/Android.mk \n")
     if(JPEG_INCLUDE_DIR)
         message(STATUS "Jpeg found ${JPEG_INCLUDE_DIR}" )
         set(JPEG_FOUND "Yes")
@@ -81,8 +82,9 @@ MACRO(ANDROID_3RD_PARTY)
     ################################################
     #PNG
     ################################################
-    FIND_PATH(PNG_INCLUDE_DIR Android.mk
+    FIND_PATH(PNG_INCLUDE_DIR png.h
         ${CMAKE_SOURCE_DIR}/3rdparty/libpng
+        NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH
     )
     #set(ENV{AND_OSG_LIB_NAMES} "$ENV{AND_OSG_LIB_NAMES} libpng")
     #set(ENV{AND_OSG_LIB_PATHS} "$ENV{AND_OSG_LIB_PATHS}include ${PNG_INCLUDE_DIR}/Android.mk \n")
@@ -96,8 +98,9 @@ MACRO(ANDROID_3RD_PARTY)
     ################################################
     #GIF
     ################################################
-    FIND_PATH(GIFLIB_INCLUDE_DIR Android.mk
+    FIND_PATH(GIFLIB_INCLUDE_DIR gif_lib.h
         ${CMAKE_SOURCE_DIR}/3rdparty/giflib
+        NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH
     )
     #set(ENV{AND_OSG_LIB_NAMES} "$ENV{AND_OSG_LIB_NAMES} libgif")
     #set(ENV{AND_OSG_LIB_PATHS} "$ENV{AND_OSG_LIB_PATHS}include ${GIFLIB_INCLUDE_DIR}/Android.mk \n")
@@ -111,11 +114,12 @@ MACRO(ANDROID_3RD_PARTY)
     ################################################
     #TIF
     ################################################
-    FIND_PATH(TIFF_INCLUDE_DIR Android.mk
+    FIND_PATH(TIFF_INCLUDE_DIR tiff.h
         ${CMAKE_SOURCE_DIR}/3rdparty/libtiff
+        NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH
     )
     #set(ENV{AND_OSG_LIB_NAMES} "$ENV{AND_OSG_LIB_NAMES} libtiff")
-    #set(ENV{AND_OSG_LIB_PATHS} "$ENV{AND_OSG_LIB_PATHS}include ${TIFF_INCLUDE_DIR}/Android.mk \n")
+    #set(ENV{AND_OSG_LIB_PATHS} "$ENV{AND_OSG_LIB_PATHS}include ${TIFF_INCLUDE_DIR}/jni/Android.mk \n")
     if(TIFF_INCLUDE_DIR)
         message(STATUS "TIF found ${TIFF_INCLUDE_DIR}" )
         set(TIFF_FOUND "Yes")
@@ -124,30 +128,16 @@ MACRO(ANDROID_3RD_PARTY)
         message(STATUS "TIF missing" )
     endif()
     ################################################
-    #ZLIB
-    ################################################
-    #FIND_PATH(ZLIB_INCLUDE_DIR Android.mk
-    #    ${CMAKE_SOURCE_DIR}/3rdparty/zlib
-    #)
-    #set(ENV{AND_OSG_LIB_NAMES} "$ENV{AND_OSG_LIB_NAMES} zlib")
-    #set(ENV{AND_OSG_LIB_PATHS} "$ENV{AND_OSG_LIB_PATHS}include ${ZLIB_INCLUDE_DIR}/Android.mk \n")
-    #if(ZLIB_INCLUDE_DIR)
-    #    message(STATUS "ZLIB found ${ZLIB_INCLUDE_DIR}" )
-    #    set(ZLIB_FOUND "Yes")
-    #    install(DIRECTORY 3rdparty/build/libjpeg/ DESTINATION ./ )
-    #else(ZLIB_INCLUDE_DIR)
-    #    message(STATUS "ZLIB missing" )
-    #endif()
-    ################################################
     #CURL
     ################################################
-    FIND_PATH(CURL_DIR Android.mk
-        ${CMAKE_SOURCE_DIR}/3rdparty/curl
+    FIND_PATH(CURL_DIR curl.h
+        ${CMAKE_SOURCE_DIR}/3rdparty/curl/include/curl
+        NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH
     )
     #set(ENV{AND_OSG_LIB_NAMES} "$ENV{AND_OSG_LIB_NAMES} libcurl")
-    #set(ENV{AND_OSG_LIB_PATHS} "$ENV{AND_OSG_LIB_PATHS}include ${CURL_DIR}/Android.mk \n")
-    set(CURL_INCLUDE_DIR ${CURL_DIR}/include) 
-    set(CURL_INCLUDE_DIRS ${CURL_DIR}/include) #Both are defined in FindCurl
+    #set(ENV{AND_OSG_LIB_PATHS} "$ENV{AND_OSG_LIB_PATHS}include ${CURL_DIR}/../../jni/Android.mk \n")
+    set(CURL_INCLUDE_DIR ${CURL_DIR}/..) 
+    set(CURL_INCLUDE_DIRS ${CURL_DIR}/..) #Both are defined in FindCurl
     if(CURL_DIR)
         message(STATUS "Curl found ${CURL_DIR}" )
         set(CURL_FOUND "Yes")
@@ -158,12 +148,13 @@ MACRO(ANDROID_3RD_PARTY)
     ################################################
     #FREETYPE
     ################################################
-    FIND_PATH(FREETYPE_DIR Android.mk
-        ${CMAKE_SOURCE_DIR}/3rdparty/freetype
+    FIND_PATH(FREETYPE_DIR ft2build.h
+        ${CMAKE_SOURCE_DIR}/3rdparty/freetype/include
+        NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH
     )
     #set(ENV{AND_OSG_LIB_NAMES} "$ENV{AND_OSG_LIB_NAMES} libft2")
-    #set(ENV{AND_OSG_LIB_PATHS} "$ENV{AND_OSG_LIB_PATHS}include ${FREETYPE_DIR}/Android.mk \n")
-    set(FREETYPE_INCLUDE_DIRS "${FREETYPE_DIR}/include ${FREETYPE_DIR}/include/freetype/config")
+    #set(ENV{AND_OSG_LIB_PATHS} "$ENV{AND_OSG_LIB_PATHS}include ${FREETYPE_DIR}/jni/Android.mk \n")
+    set(FREETYPE_INCLUDE_DIRS "${FREETYPE_DIR} ${FREETYPE_DIR}/freetype/config")
     if(FREETYPE_DIR)
         message(STATUS "FREETYPE found ${FREETYPE_DIR}" )
         set(FREETYPE_FOUND "Yes")
@@ -176,6 +167,7 @@ MACRO(ANDROID_3RD_PARTY)
     ################################################
     FIND_PATH(GDAL_DIR gdal.h
         ${CMAKE_SOURCE_DIR}/3rdparty/gdal/include
+        NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH
     )
     set(GDAL_INCLUDE_DIR "${GDAL_DIR}")
     if(GDAL_DIR)

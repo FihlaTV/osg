@@ -13,3 +13,5 @@ APP_CPPFLAGS := -fexceptions -frtti
 APP_ABI := ${ANDROID_ABI}
 
 APP_MODULES      := $ENV{AND_OSG_LIB_NAMES}
+
+NDK_TOOLCHAIN_VERSION := clang
