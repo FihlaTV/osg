@@ -58,6 +58,7 @@ void LightModel::apply(State&) const
 
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT,_ambient.ptr());
 
+    #ifndef OSG_GLES1_AVAILABLE
     static bool s_separateSpecularSupported = strncmp((const char*)glGetString(GL_VERSION),"1.2",3)>=0;
     if (s_separateSpecularSupported)
     {
@@ -70,6 +71,7 @@ void LightModel::apply(State&) const
             glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL,GL_SINGLE_COLOR);
         }
     }
+    #endif
 
     #ifndef OSG_GLES1_AVAILABLE
     glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER,_localViewer);

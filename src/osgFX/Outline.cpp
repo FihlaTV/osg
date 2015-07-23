@@ -56,7 +56,12 @@ namespace osgFX
 
         /// Validate.
         bool validate(osg::State&) const {
+#if defined(OSG_GLES1_AVAILABLE) || defined(OSG_GLES2_AVAILABLE) || !defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
+            // OutlineTechnique depends on glPolygonMode. See http://forum.openscenegraph.org/viewtopic.php?t=11240 .
+            return false;
+#else
             return true;
+#endif
         }
 
         /// Set outline width.
