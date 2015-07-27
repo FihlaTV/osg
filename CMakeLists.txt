@@ -952,9 +952,14 @@ IF(APPLE AND NOT ANDROID)
         IF(NOT OSG_CONFIG_HAS_BEEN_RUN_BEFORE)
             IF(${OSG_OSX_SDK_NAME} STREQUAL "macosx10.8" OR ${OSG_OSX_SDK_NAME} STREQUAL "macosx10.9" OR ${OSG_OSX_SDK_NAME} STREQUAL "macosx10.10")
                 SET(OSG_DEFAULT_IMAGE_PLUGIN_FOR_OSX "imageio" CACHE STRING "Forced imageio default image plugin for OSX" FORCE)
-                # 64 Bit Works, i386,ppc is not supported any more
-                SET(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "Build architectures for OSX" FORCE)
-                SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.8 -fvisibility-inlines-hidden" CACHE STRING "Flags used by the compiler during all build types." FORCE)
+            	IF(${CMAKE_OSX_DEPLOYMENT_TARGET} STREQUAL "10.7")
+                	# 64 Bit Works, PPC is not supported any more
+                	SET(CMAKE_OSX_ARCHITECTURES "i386;x86_64" CACHE STRING "Build architectures for OSX" FORCE)
+                	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.7 -fvisibility-inlines-hidden" CACHE STRING "Flags used by the compiler during all build types." FORCE)
+                ELSE()
+                	# 64 Bit Works, i386,ppc is not supported any more
+                	SET(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "Build architectures for OSX" FORCE)
+                	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.8 -fvisibility-inlines-hidden" CACHE STRING "Flags used by the compiler during all build types." FORCE)
             ELSEIF(${OSG_OSX_SDK_NAME} STREQUAL "macosx10.7")
                 SET(OSG_DEFAULT_IMAGE_PLUGIN_FOR_OSX "imageio" CACHE STRING "Forced imageio default image plugin for OSX" FORCE)
                 # 64 Bit Works, PPC is not supported any more
