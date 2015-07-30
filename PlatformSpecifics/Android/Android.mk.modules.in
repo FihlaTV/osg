@@ -27,7 +27,14 @@ LOCAL_C_INCLUDES :=       ${MODULE_INCLUDES}
 
 LOCAL_CFLAGS :=           ${MODULE_FLAGS_C}
 
-LOCAL_CPPFLAGS :=         ${MODULE_FLAGS_CPP} -Wno-extern-c-compat
+LOCAL_CPPFLAGS :=         ${MODULE_FLAGS_CPP}
+
+# NDK's clang toolchain inserts '-g' even for release builds. Override it.
+ifneq ($(APP_OPTIM),debug)
+    LOCAL_CPPFLAGS += -g0
+endif
+# Silence some clang warnings we don't care about.
+LOCAL_CPPFLAGS += -Wno-extern-c-compat -Wno-deprecated-register
 
 LOCAL_SHARED_LIBRARIES := ${MODULE_LIBS_SHARED}
 LOCAL_STATIC_LIBRARIES := ${MODULE_LIBS_STATIC}
