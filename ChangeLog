@@ -1,3 +1,103 @@
+2015-08-12 08:34  robert
+
+	* src/osgVolume/Shaders/volume_frag.cpp,
+	  src/osgVolume/Shaders/volume_iso_frag.cpp,
+	  src/osgVolume/Shaders/volume_lit_frag.cpp,
+	  src/osgVolume/Shaders/volume_lit_tf_frag.cpp,
+	  src/osgVolume/Shaders/volume_mip_frag.cpp,
+	  src/osgVolume/Shaders/volume_tf_frag.cpp,
+	  src/osgVolume/Shaders/volume_tf_iso_frag.cpp,
+	  src/osgVolume/Shaders/volume_tf_mip_frag.cpp: Revised shaders to
+	  catch NVidia length bug that generates NAN's
+
+2015-08-12 07:41  robert
+
+	* ChangeLog, include/osg/Version: Updated version and ChangeLog for
+	  release
+
+2015-08-12 07:38  robert
+
+	* CMakeLists.txt: Updated version number for 3.2.3 release
+
+2015-08-12 07:37  robert
+
+	* AUTHORS.txt, ChangeLog, README.txt: Updated AUTHORS, ChangeLog
+	  and README for 3.2.3 release
+
+2015-08-12 06:50  robert
+
+	* applications/osgversion/Contributors.cpp: Merged Contributors
+	  list from svn/trunk.
+
+2015-08-08 08:49  robert
+
+	* src/osgPlugins/zip/ZipArchive.cpp: From Glenn Waldron, fix error
+	  in ZIP plugin handling of memory buffer
+
+2015-08-06 10:09  robert
+
+	* src/osgVolume/Shaders/volume_frag.cpp,
+	  src/osgVolume/Shaders/volume_iso_frag.cpp,
+	  src/osgVolume/Shaders/volume_lit_frag.cpp,
+	  src/osgVolume/Shaders/volume_lit_tf_frag.cpp,
+	  src/osgVolume/Shaders/volume_mip_frag.cpp,
+	  src/osgVolume/Shaders/volume_tf_frag.cpp,
+	  src/osgVolume/Shaders/volume_tf_iso_frag.cpp,
+	  src/osgVolume/Shaders/volume_tf_mip_frag.cpp: Updated
+	  RayTracedTechnique shaders from svn/trunk.
+
+2015-08-04 15:52  robert
+
+	* CMakeLists.txt, NEWS.txt: Updated version and NEWS for 3.2.2
+	  stable release
+
+2015-08-04 10:37  robert
+
+	* NEWS.txt: Update NEWS to online Contributors list.
+
+2015-08-04 10:26  robert
+
+	* AUTHORS.txt: Updated AUTHORS
+
+2015-08-04 10:25  robert
+
+	* ChangeLog, NEWS.txt: Updated ChangeLog and NEWS for 3.2.2 release
+
+2015-08-04 10:11  robert
+
+	* CMakeLists.txt: Upated rc number to 4
+
+2015-08-04 09:35  robert
+
+	* include/osg/GL: Build fix for Mingw
+
+2015-07-23 14:42  robert
+
+	* include/osgViewer/ViewerBase: From Pjotr Svetachov, buid fixes
+	  for VS2015.
+
+2015-07-21 14:22  robert
+
+	* src/osgPlugins/OpenFlight/PaletteRecords.cpp: Added check for
+	  validity of OpenFlight shininess value.
+
+2015-07-21 13:42  robert
+
+	* include/osg/BoundsChecking: Fixed typo
+
+2015-07-19 09:51  robert
+
+	* src/osgPlugins/tiff/ReaderWriterTIFF.cpp: Reinstated the
+	  TIFFSetField(image, TIFFTAG_ROWSPERSTRIP, rowsperstrip);
+
+2015-07-17 09:15  robert
+
+	* CMakeLists.txt: Updated release candidate nubmer
+
+2015-07-17 09:03  robert
+
+	* AUTHORS.txt, ChangeLog: Updated ChangeLog and AURHORS
+
 2015-07-17 08:35  robert
 
 	* AUTHORS.txt, ChangeLog: Updated ChangeLog and AUTHORS file
