@@ -16,7 +16,8 @@
 
 #include <osg/Config>
 #include <osg/Export>
-
+#include <osg/Types>
+ 
 #cmakedefine OSG_GL1_AVAILABLE
 #cmakedefine OSG_GL2_AVAILABLE
 #cmakedefine OSG_GL3_AVAILABLE
@@ -96,7 +97,7 @@
     #endif
 
     // XXX This is from Win32's <ctype.h>
-    #if !defined(_WCHAR_T_DEFINED) && !(defined(__GNUC__)&&((__GNUC__ == 3)||(__GNUC__ == 4)))
+    #if !defined(_WCHAR_T_DEFINED) && !(defined(__GNUC__)&&(__GNUC__ > 2))
         typedef unsigned short wchar_t;
         #define _WCHAR_T_DEFINED
     #endif
@@ -119,19 +120,11 @@
 
 
 #ifndef GL_HEADER_HAS_GLINT64
-    #ifdef _WIN32
-        typedef __int64 GLint64;
-    #else
-        typedef long long int GLint64;
-    #endif
+    typedef int64_t GLint64;
 #endif
 
 #ifndef GL_HEADER_HAS_GLUINT64
-    #ifdef _WIN32
-        typedef unsigned __int64 GLuint64;
-    #else
-        typedef unsigned long long int GLuint64;
-    #endif
+    typedef uint64_t GLuint64;
 #endif
 
 #ifdef OSG_GL_MATRICES_AVAILABLE
