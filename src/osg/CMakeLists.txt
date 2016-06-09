@@ -55,6 +55,7 @@ SET(TARGET_H
     ${HEADER_PATH}/ColorMaski
     ${HEADER_PATH}/ColorMatrix
     ${HEADER_PATH}/ComputeBoundsVisitor
+    ${HEADER_PATH}/ContextData
     ${HEADER_PATH}/ConvexPlanarOccluder
     ${HEADER_PATH}/ConvexPlanarPolygon
     ${HEADER_PATH}/CoordinateSystemNode
@@ -89,6 +90,7 @@ SET(TARGET_H
     ${HEADER_PATH}/GraphicsThread
     ${HEADER_PATH}/Group
     ${HEADER_PATH}/Hint
+    ${HEADER_PATH}/Identifier
     ${HEADER_PATH}/Image
     ${HEADER_PATH}/ImageSequence
     ${HEADER_PATH}/ImageStream
@@ -182,10 +184,13 @@ SET(TARGET_H
     ${HEADER_PATH}/Transform
     ${HEADER_PATH}/TriangleFunctor
     ${HEADER_PATH}/TriangleIndexFunctor
+    ${HEADER_PATH}/TriangleLinePointIndexFunctor
     ${HEADER_PATH}/Types
     ${HEADER_PATH}/Uniform
     ${HEADER_PATH}/UserDataContainer
     ${HEADER_PATH}/ValueObject
+    ${HEADER_PATH}/ValueMap
+    ${HEADER_PATH}/ValueStack
     ${HEADER_PATH}/Vec2
     ${HEADER_PATH}/Vec2b
     ${HEADER_PATH}/Vec2d
@@ -257,6 +262,7 @@ SET(TARGET_SRC
     ColorMaski.cpp
     ColorMatrix.cpp
     ComputeBoundsVisitor.cpp
+    ContextData.cpp
     ConvexPlanarOccluder.cpp
     ConvexPlanarPolygon.cpp
     CoordinateSystemNode.cpp
@@ -289,6 +295,7 @@ SET(TARGET_SRC
     GraphicsThread.cpp
     Group.cpp
     Hint.cpp
+    Identifier.cpp
     Image.cpp
     ImageSequence.cpp
     ImageStream.cpp
@@ -374,6 +381,8 @@ SET(TARGET_SRC
     Transform.cpp
     Uniform.cpp
     UserDataContainer.cpp
+    ValueMap.cpp
+    ValueStack.cpp
     Version.cpp
     VertexAttribDivisor.cpp
     VertexProgram.cpp
@@ -411,6 +420,17 @@ SET(TARGET_SRC
 
     ${OPENSCENEGRAPH_VERSIONINFO_RC}
 )
+
+################################################################################
+## Quieten warnings that a due to optional code paths
+
+IF(CMAKE_COMPILER_IS_GNUCXX)
+    # Remove -Wextra flag as it barfs on ffmoeg headers
+   STRING(REGEX REPLACE "-Wextra" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+ENDIF()
+
+
+
 SET(TARGET_LIBRARIES OpenThreads)
 
 SET(TARGET_EXTERNAL_LIBRARIES

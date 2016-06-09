@@ -1827,14 +1827,6 @@ private:
 
 };
 
-}
+REGISTER_WINDOWINGSYSTEMINTERFACE(Cocoa, CocoaWindowingSystemInterface)
 
-#ifdef USE_DARWIN_COCOA_IMPLEMENTATION
-RegisterWindowingSystemInterfaceProxy<osgViewer::CocoaWindowingSystemInterface> createWindowingSystemInterfaceProxy;
-#endif
-
-// declare C entry point for static compilation.
-extern "C" void graphicswindow_Cocoa(void)
-{
-    osg::GraphicsContext::setWindowingSystemInterface(new osgViewer::CocoaWindowingSystemInterface());
 }

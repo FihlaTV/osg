@@ -58,6 +58,7 @@ CullVisitor::CullVisitor():
 }
 
 CullVisitor::CullVisitor(const CullVisitor& rhs):
+    osg::Object(rhs),
     NodeVisitor(rhs),
     CullStack(rhs),
     _currentStateGraph(NULL),
@@ -985,14 +986,14 @@ void CullVisitor::apply(osg::Drawable& drawable)
 
     if( drawable.getCullCallback() )
     {
-        osg::Drawable::CullCallback* dcb = dynamic_cast<osg::Drawable::CullCallback*>(drawable.getCullCallback());
+        osg::DrawableCullCallback* dcb = drawable.getCullCallback()->asDrawableCullCallback();
         if (dcb)
         {
             if( dcb->cull( this, &drawable, &_renderInfo ) == true ) return;
         }
     }
 
-    if (!getNodePath().empty() && getNodePath().back()->isCullingActive() && isCulled(bb)) return;
+    if (drawable.isCullingActive() && isCulled(bb)) return;
 
 
     if (_computeNearFar && bb.valid())
@@ -1076,7 +1077,7 @@ void CullVisitor::apply(Billboard& node)
 
         if( drawable->getCullCallback() )
         {
-            osg::Drawable::CullCallback* dcb = dynamic_cast<osg::Drawable::CullCallback*>(drawable->getCullCallback());
+            osg::DrawableCullCallback* dcb = drawable->getCullCallback()->asDrawableCullCallback();
             if (dcb && dcb->cull( this, drawable, &_renderInfo ) == true )
                 continue;
         }
@@ -1108,9 +1109,9 @@ void CullVisitor::apply(Billboard& node)
                                     <<"    depth="<<depth<<", pos=("<<pos<<"),"<<std::endl
                                     <<"    *billboard_matrix="<<*billboard_matrix<<std::endl;
             OSG_DEBUG << "    NodePath:" << std::endl;
-            for (NodePath::const_iterator i = getNodePath().begin(); i != getNodePath().end(); ++i)
+            for (NodePath::const_iterator itr = getNodePath().begin(); itr != getNodePath().end(); ++itr)
             {
-                OSG_DEBUG << "        \"" << (*i)->getName() << "\"" << std::endl;
+                OSG_DEBUG << "        \"" << (*itr)->getName() << "\"" << std::endl;
             }
         }
         else
@@ -1368,6 +1369,8 @@ class RenderStageCache : public osg::Object, public osg::Observer
 {
     public:
 
+        typedef std::map<osg::Referenced*, osg::ref_ptr<RenderStage> > RenderStageMap;
+
         RenderStageCache() {}
         RenderStageCache(const RenderStageCache&, const osg::CopyOp&) {}
         virtual ~RenderStageCache()
@@ -1385,29 +1388,46 @@ class RenderStageCache : public osg::Object, public osg::Observer
         virtual void objectDeleted(void* object)
         {
             osg::Referenced* ref = reinterpret_cast<osg::Referenced*>(object);
-            osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor*>(ref);
+
+            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+
+            RenderStageMap::iterator itr = _renderStageMap.find(ref);
+            if (itr!=_renderStageMap.end())
+            {
+                _renderStageMap.erase(itr);
+            }
+        }
+
+        void setRenderStage(osg::Referenced* cv, RenderStage* rs)
+        {
+            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+            RenderStageMap::iterator itr = _renderStageMap.find(cv);
+            if (itr==_renderStageMap.end())
+            {
+                _renderStageMap[cv] = rs;
+                cv->addObserver(this);
+            }
+            else
+            {
+                itr->second = rs;
+            }
+
+        }
+
+        RenderStage* getRenderStage(osg::Referenced* cv)
+        {
             OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
             RenderStageMap::iterator itr = _renderStageMap.find(cv);
             if (itr!=_renderStageMap.end())
             {
-                _renderStageMap.erase(cv);
+                return itr->second.get();
+            }
+            else
+            {
+                return 0;
             }
         }
 
-        void setRenderStage(CullVisitor* cv, RenderStage* rs)
-        {
-            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
-            _renderStageMap[cv] = rs;
-            cv->addObserver(this);
-        }
-
-        RenderStage* getRenderStage(osgUtil::CullVisitor* cv)
-        {
-            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
-            return _renderStageMap[cv].get();
-        }
-
-        typedef std::map<CullVisitor*, osg::ref_ptr<RenderStage> > RenderStageMap;
 
         /** Resize any per context GLObject buffers to specified size. */
         virtual void resizeGLObjectBuffers(unsigned int maxSize)
@@ -1600,27 +1620,8 @@ void CullVisitor::apply(osg::Camera& camera)
         rtts->setClearDepth(camera.getClearDepth());
         rtts->setClearAccum(camera.getClearAccum());
         rtts->setClearStencil(camera.getClearStencil());
-        rtts->setClearMask(camera.getClearMask());
-
-
-        // set up the background color and clear mask.
-        if (camera.getInheritanceMask() & CLEAR_COLOR)
-        {
-            rtts->setClearColor(previous_stage->getClearColor());
-        }
-        else
-        {
-            rtts->setClearColor(camera.getClearColor());
-        }
-        if (camera.getInheritanceMask() & CLEAR_MASK)
-        {
-            rtts->setClearMask(previous_stage->getClearMask());
-        }
-        else
-        {
-            rtts->setClearMask(camera.getClearMask());
-        }
-
+        rtts->setClearMask((camera.getInheritanceMask() & CLEAR_MASK) ? previous_stage->getClearMask() : camera.getClearMask());
+        rtts->setClearColor((camera.getInheritanceMask() & CLEAR_COLOR) ? previous_stage->getClearColor() : camera.getClearColor());
 
         // set the color mask.
         osg::ColorMask* colorMask = camera.getColorMask()!=0 ? camera.getColorMask() : previous_stage->getColorMask();

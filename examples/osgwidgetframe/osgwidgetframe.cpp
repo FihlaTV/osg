@@ -9,7 +9,8 @@
 
 const unsigned int MASK_2D = 0xF0000000;
 
-int main(int argc, char** argv) {
+int main(int, char**)
+{
     osgViewer::Viewer viewer;
 
     osgWidget::WindowManager* wm = new osgWidget::WindowManager(
@@ -19,7 +20,7 @@ int main(int argc, char** argv) {
         MASK_2D,
         osgWidget::WindowManager::WM_PICK_DEBUG
     );
-    
+
     osgWidget::Frame* frame = osgWidget::Frame::createSimpleFrame(
         "frame",
         32.0f,
@@ -30,7 +31,7 @@ int main(int argc, char** argv) {
 
     osgWidget::Frame* frame2 = osgWidget::Frame::createSimpleFrameFromTheme(
         "frameTheme",
-        osgDB::readImageFile("osgWidget/theme-1.png"),
+        osgDB::readRefImageFile("osgWidget/theme-1.png"),
         300.0f,
         300.0f,
         osgWidget::Frame::FRAME_ALL
@@ -40,7 +41,7 @@ int main(int argc, char** argv) {
 
     osgWidget::Frame* frame22 = osgWidget::Frame::createSimpleFrameFromTheme(
         "frameTheme",
-        osgDB::readImageFile("osgWidget/theme-2.png"),
+        osgDB::readRefImageFile("osgWidget/theme-2.png"),
         300.0f,
         300.0f,
         osgWidget::Frame::FRAME_ALL
@@ -51,14 +52,14 @@ int main(int argc, char** argv) {
 
     osgWidget::Frame* frame3 = osgWidget::Frame::createSimpleFrameFromTheme(
         "frameTheme",
-        osgDB::readImageFile("osgWidget/theme-2.png"),
+        osgDB::readRefImageFile("osgWidget/theme-2.png"),
         300.0f,
         300.0f,
         osgWidget::Frame::FRAME_ALL
         );
     frame3->setPosition(300,100,0);
     frame3->getBackground()->setColor(0.0f, 0.0f, 0.0f, 1.0f);
-    
+
     osgWidget::Table* table  = new osgWidget::Table("table", 2, 2);
     osgWidget::Box*   bottom = new osgWidget::Box("panel", osgWidget::Box::HORIZONTAL);
 

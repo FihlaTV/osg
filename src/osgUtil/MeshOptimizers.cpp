@@ -240,8 +240,7 @@ void IndexMeshVisitor::makeMesh(Geometry& geom)
     unsigned int numSurfacePrimitives = 0;
     unsigned int numNonIndexedPrimitives = 0;
     Geometry::PrimitiveSetList& primitives = geom.getPrimitiveSetList();
-    Geometry::PrimitiveSetList::iterator itr;
-    for(itr=primitives.begin();
+    for(Geometry::PrimitiveSetList::iterator itr=primitives.begin();
         itr!=primitives.end();
         ++itr)
     {
@@ -358,7 +357,7 @@ void IndexMeshVisitor::makeMesh(Geometry& geom)
     Geometry::PrimitiveSetList new_primitives;
     new_primitives.reserve(primitives.size());
 
-    for(itr=primitives.begin();
+    for(Geometry::PrimitiveSetList::iterator itr=primitives.begin();
         itr!=primitives.end();
         ++itr)
     {
@@ -612,25 +611,25 @@ struct TriangleAddOperator
     std::vector<unsigned>* vertexTris;
     TriangleList* triangles;
     int triIdx;
-    TriangleAddOperator() : vertices(0), triIdx(0) {}
+    TriangleAddOperator() : vertices(0), vertexTris(0), triangles(0), triIdx(0) {}
 
     void doVertex(unsigned p)
     {
-        (*vertexTris)[(*vertices)[p].triList + (*vertices)[p].numActiveTris++]
-            = triIdx;
+        (*vertexTris)[(*vertices)[p].triList + (*vertices)[p].numActiveTris++] = triIdx;
     }
 
     void operator() (unsigned int p1, unsigned int p2, unsigned int p3)
     {
         if (p1 == p2 || p2 == p3 || p1 == p3)
             return;
+
         doVertex(p1);
         doVertex(p2);
         doVertex(p3);
-    (*triangles)[triIdx].verts[0] = p1;
-    (*triangles)[triIdx].verts[1] = p2;
-    (*triangles)[triIdx].verts[2] = p3;
-    triIdx++;
+        (*triangles)[triIdx].verts[0] = p1;
+        (*triangles)[triIdx].verts[1] = p2;
+        (*triangles)[triIdx].verts[2] = p3;
+        triIdx++;
     }
 };
 

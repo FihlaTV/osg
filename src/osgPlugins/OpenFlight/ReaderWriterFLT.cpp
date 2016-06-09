@@ -174,7 +174,7 @@ public:
             std::string filename = node.getFileName(pos);
 
             // read external
-            osg::ref_ptr<osg::Node> external = osgDB::readNodeFile(filename,_options.get());
+            osg::ref_ptr<osg::Node> external = osgDB::readRefNodeFile(filename,_options.get());
             if (external.valid())
             {
                 if (_cloneExternalReferences)
@@ -374,8 +374,8 @@ class FLTReaderWriter : public ReaderWriter
                 document.setUseTextureAlphaForTransparancyBinning(options->getOptionString().find("noTextureAlphaForTransparancyBinning")==std::string::npos);
                 OSG_DEBUG << readerMsg << "noTextureAlphaForTransparancyBinning=" << !document.getUseTextureAlphaForTransparancyBinning() << std::endl;
 
-                document.setReadObjectRecordData(options->getOptionString().find("readObjectRecordData")==std::string::npos);
-                OSG_DEBUG << readerMsg << "readObjectRecordData=" << !document.getReadObjectRecordData() << std::endl;
+                document.setReadObjectRecordData(options->getOptionString().find("readObjectRecordData")!=std::string::npos);
+                OSG_DEBUG << readerMsg << "readObjectRecordData=" << document.getReadObjectRecordData() << std::endl;
 
                 document.setPreserveNonOsgAttrsAsUserData((options->getOptionString().find("preserveNonOsgAttrsAsUserData")!=std::string::npos));
                 OSG_DEBUG << readerMsg << "preserveNonOsgAttrsAsUserData=" << document.getPreserveNonOsgAttrsAsUserData() << std::endl;

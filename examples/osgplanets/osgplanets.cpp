@@ -127,9 +127,9 @@ osg::Image* createBillboardImage(const osg::Vec4& centerColour, unsigned int siz
         {
             float dx = (float(c) - mid)*div;
             float dy = (float(r) - mid)*div;
-            float r = powf(1.0f-sqrtf(dx*dx+dy*dy),power);
-            if (r<0.0f) r=0.0f;
-            osg::Vec4 color = centerColour*r+backgroundColour*(1.0f-r);
+            float pr = powf(1.0f-sqrtf(dx*dx+dy*dy),power);
+            if (pr<0.0f) r=0.0f;
+            osg::Vec4 color = centerColour*pr+backgroundColour*(1.0f-pr);
             // color.set(1.0f,1.0f,1.0f,0.5f);
             *ptr++ = (unsigned char)((color[0])*255.0f);
             *ptr++ = (unsigned char)((color[1])*255.0f);
@@ -366,7 +366,7 @@ osg::Geode* SolarSystem::createSpace( const std::string& name, const std::string
 
     if( !textureName.empty() )
     {
-        osg::Image* image = osgDB::readImageFile( textureName );
+        osg::ref_ptr<osg::Image> image = osgDB::readRefImageFile( textureName );
         if ( image )
         {
             sSpaceSphere->getOrCreateStateSet()->setTextureAttributeAndModes( 0, new osg::Texture2D( image ), osg::StateAttribute::ON );
@@ -467,7 +467,7 @@ osg::Geode* SolarSystem::createPlanet( double radius, const std::string& name, c
 
     if( !textureName.empty() )
     {
-        osg::Image* image = osgDB::readImageFile( textureName );
+        osg::ref_ptr<osg::Image> image = osgDB::readRefImageFile( textureName );
         if ( image )
         {
             osg::Texture2D* tex2d = new osg::Texture2D( image );
@@ -493,7 +493,7 @@ osg::Geode* SolarSystem::createPlanet( double radius, const std::string& name, c
 
     if( !textureName2.empty() )
     {
-        osg::Image* image = osgDB::readImageFile( textureName2 );
+        osg::ref_ptr<osg::Image> image = osgDB::readRefImageFile( textureName2 );
         if ( image )
         {
             osg::StateSet* stateset = geodePlanet->getOrCreateStateSet();

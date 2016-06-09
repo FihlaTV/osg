@@ -43,7 +43,8 @@ OrbitManipulator::OrbitManipulator( int flags )
 
 /// Constructor.
 OrbitManipulator::OrbitManipulator( const OrbitManipulator& om, const CopyOp& copyOp )
-   : osg::Callback(om, copyOp),
+    : osg::Object(om, copyOp),
+     osg::Callback(om, copyOp),
      inherited( om, copyOp ),
      _center( om._center ),
      _rotation( om._rotation ),
@@ -450,9 +451,9 @@ void OrbitManipulator::zoomModel( const float dy, bool pushForwardIfNeeded )
         if( pushForwardIfNeeded )
         {
             // push the camera forward
-            float scale = -_distance;
+            float yscale = -_distance;
             Matrixd rotation_matrix( _rotation );
-            Vec3d dv = (Vec3d( 0.0f, 0.0f, -1.0f ) * rotation_matrix) * (dy * scale);
+            Vec3d dv = (Vec3d( 0.0f, 0.0f, -1.0f ) * rotation_matrix) * (dy * yscale);
             _center += dv;
         }
         else

@@ -19,6 +19,7 @@
 #include <osg/Texture3D>
 #include <osg/TextureRectangle>
 #include <osg/TextureCubeMap>
+#include <osg/ContextData>
 #include <osg/GLExtensions>
 #include <osg/GLU>
 
@@ -247,8 +248,7 @@ void RenderStage::runCameraSetUp(osg::RenderInfo& renderInfo)
     int width = static_cast<int>(_viewport->x() + _viewport->width());
     int height = static_cast<int>(_viewport->y() + _viewport->height());
     int depth = 1;
-    osg::Camera::BufferAttachmentMap::iterator itr;
-    for(itr = bufferAttachments.begin();
+    for(osg::Camera::BufferAttachmentMap::iterator itr = bufferAttachments.begin();
         itr != bufferAttachments.end();
         ++itr)
     {
@@ -261,7 +261,7 @@ void RenderStage::runCameraSetUp(osg::RenderInfo& renderInfo)
     // OSG_NOTICE<<"RenderStage::runCameraSetUp computed "<<width<<" "<<height<<" "<<depth<<std::endl;
 
     // attach images that need to be copied after the stage is drawn.
-    for(itr = bufferAttachments.begin();
+    for(osg::Camera::BufferAttachmentMap::iterator itr = bufferAttachments.begin();
         itr != bufferAttachments.end();
         ++itr)
     {
@@ -537,12 +537,8 @@ void RenderStage::runCameraSetUp(osg::RenderInfo& renderInfo)
                 fbo = 0;
 
                 // clean up.
-                double availableTime = 100.0f;
-                double currentTime = state.getFrameStamp()?state.getFrameStamp()->getReferenceTime():0.0;
-                osg::RenderBuffer::flushDeletedRenderBuffers(state.getContextID(),currentTime,availableTime);
-                osg::FrameBufferObject::flushDeletedFrameBufferObjects(state.getContextID(),currentTime,availableTime);
-
-
+                osg::get<osg::GLRenderBufferManager>(state.getContextID())->flushAllDeletedGLObjects();
+                osg::get<osg::GLFrameBufferObjectManager>(state.getContextID())->flushAllDeletedGLObjects();
             }
             else
             {
@@ -555,8 +551,7 @@ void RenderStage::runCameraSetUp(osg::RenderInfo& renderInfo)
                 {
                     fbo_multisample->apply(state);
 
-                    GLenum status = ext->glCheckFramebufferStatus(GL_FRAMEBUFFER_EXT);
-
+                    status = ext->glCheckFramebufferStatus(GL_FRAMEBUFFER_EXT);
                     if (status != GL_FRAMEBUFFER_COMPLETE_EXT)
                     {
                         OSG_NOTICE << "RenderStage::runCameraSetUp(), "
@@ -568,10 +563,8 @@ void RenderStage::runCameraSetUp(osg::RenderInfo& renderInfo)
                         _resolveFbo = 0;
 
                         // clean up.
-                        double availableTime = 100.0f;
-                        double currentTime = state.getFrameStamp()?state.getFrameStamp()->getReferenceTime():0.0;
-                        osg::RenderBuffer::flushDeletedRenderBuffers(state.getContextID(),currentTime,availableTime);
-                        osg::FrameBufferObject::flushDeletedFrameBufferObjects(state.getContextID(),currentTime,availableTime);
+                        osg::get<osg::GLRenderBufferManager>(state.getContextID())->flushAllDeletedGLObjects();
+                        osg::get<osg::GLFrameBufferObjectManager>(state.getContextID())->flushAllDeletedGLObjects();
                     }
                     else
                     {
@@ -660,6 +653,7 @@ void RenderStage::runCameraSetUp(osg::RenderInfo& renderInfo)
                         traits->depth = 24;
                         depthAttached = true;
                         traits->stencil = 8;
+                        break;
                     }
                     case(osg::Camera::COLOR_BUFFER):
                     {
@@ -1044,8 +1038,7 @@ void RenderStage::drawInner(osg::RenderInfo& renderInfo,RenderLeaf*& previous, b
         copyTexture(renderInfo);
     }
 
-    std::map< osg::Camera::BufferComponent, Attachment>::const_iterator itr;
-    for(itr = _bufferAttachmentMap.begin();
+    for(std::map< osg::Camera::BufferComponent, Attachment>::const_iterator itr = _bufferAttachmentMap.begin();
         itr != _bufferAttachmentMap.end();
         ++itr)
     {

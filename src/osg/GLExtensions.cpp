@@ -122,8 +122,8 @@ bool osg::isGLExtensionOrVersionSupported(unsigned int contextID, const char *ex
 
                 // Get extensions using new indexed string interface.
 
-                typedef const GLubyte * GL_APIENTRY PFNGLGETSTRINGIPROC( GLenum, GLuint );
-                PFNGLGETSTRINGIPROC* glGetStringi = 0;
+                typedef const GLubyte * GL_APIENTRY MYGLGETSTRINGIPROC( GLenum, GLuint );
+                MYGLGETSTRINGIPROC* glGetStringi = 0;
                 setGLExtensionFuncPtr( glGetStringi, "glGetStringi");
 
                 if( glGetStringi != NULL )
@@ -1034,7 +1034,7 @@ GLExtensions::GLExtensions(unsigned int contextID)
         glGenerateMipmap != 0 &&
         glGetRenderbufferParameteriv != 0 &&
     ( OSG_GLES1_FEATURES || isGLExtensionOrVersionSupported(contextID, "GL_EXT_framebuffer_object",3.0f) );
-      
+
 
     isPackedDepthStencilSupported = OSG_GL3_FEATURES ||
         (isGLExtensionSupported(contextID, "GL_EXT_packed_depth_stencil")) ||
@@ -1049,6 +1049,11 @@ GLExtensions::GLExtensions(unsigned int contextID)
     osg::setGLExtensionFuncPtr(glWaitSync, "glWaitSync");
     osg::setGLExtensionFuncPtr(glGetSynciv, "glGetSynciv");
 
+    // Indirect Rendering
+    osg::setGLExtensionFuncPtr(glDrawArraysIndirect, "glDrawArraysIndirect", "glDrawArraysIndirectEXT");
+    osg::setGLExtensionFuncPtr(glMultiDrawArraysIndirect, "glMultiDrawArraysIndirect", "glMultiDrawArraysIndirectEXT");
+    osg::setGLExtensionFuncPtr(glDrawElementsIndirect, "glDrawElementsIndirect", "glDrawElementsIndirectEXT");
+    osg::setGLExtensionFuncPtr(glMultiDrawElementsIndirect, "glMultiDrawElementsIndirect", "glMultiDrawElementsIndirectEXT");
 
     // Transform Feeedback
     osg::setGLExtensionFuncPtr(glBeginTransformFeedback, "glBeginTransformFeedback", "glBeginTransformFeedbackEXT");
@@ -1077,7 +1082,9 @@ GLExtensions::GLExtensions(unsigned int contextID)
     osg::setGLExtensionFuncPtr(glBindVertexArray,"glBindVertexArray");
     osg::setGLExtensionFuncPtr(glDeleteVertexArrays,"glDeleteVertexArrays");
     osg::setGLExtensionFuncPtr(glIsVertexArray,"glIsVertexArray");
-    
+
+    // MultiDrawArrays
+    setGLExtensionFuncPtr(glMultiDrawArrays, "glMultiDrawArrays", "glMultiDrawArraysEXT");
 }
 
 

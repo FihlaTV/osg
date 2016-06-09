@@ -318,13 +318,12 @@ class Win32WindowingSystem : public osg::GraphicsContext::WindowingSystemInterfa
     static std::string osgGraphicsWindowWithoutCursorClass; //!< Name of Win32 window class (without cursor) used by OSG graphics window instances
 
     Win32WindowingSystem();
-    ~Win32WindowingSystem();
 
     // Access the Win32 windowing system through this singleton class.
-    static Win32WindowingSystem* getInterface()
+    static osg::observer_ptr<Win32WindowingSystem>& getInterface()
     {
-        static Win32WindowingSystem* win32Interface = new Win32WindowingSystem;
-        return win32Interface;
+        static osg::observer_ptr<Win32WindowingSystem> s_win32Interface;
+        return s_win32Interface;
     }
 
     // Return the number of screens present in the system
@@ -367,6 +366,8 @@ class Win32WindowingSystem : public osg::GraphicsContext::WindowingSystemInterfa
     virtual bool getSampleOpenGLContext( OpenGLContext& context, HDC windowHDC, int windowOriginX, int windowOriginY );
 
   protected:
+
+    virtual ~Win32WindowingSystem();
 
     // Display devices present in the system
     typedef std::vector<DISPLAY_DEVICE> DisplayDevices;
@@ -699,7 +700,9 @@ std::string Win32WindowingSystem::osgGraphicsWindowWithoutCursorClass;
 Win32WindowingSystem::Win32WindowingSystem()
 : _windowClassesRegistered(false)
 {
-  // Detect presence of runtime support for multitouch
+    getInterface() = this;
+
+    // Detect presence of runtime support for multitouch
     HMODULE hModule = LoadLibrary("user32");
     if (hModule)
     {
@@ -1543,7 +1546,7 @@ bool GraphicsWindowWin32::determineWindowPositionAndStyle( unsigned int  screenN
     //
 
     osg::GraphicsContext::ScreenIdentifier screenId(screenNum);
-    Win32WindowingSystem* windowManager = Win32WindowingSystem::getInterface();
+    osg::ref_ptr<Win32WindowingSystem> windowManager = Win32WindowingSystem::getInterface();
 
     windowManager->getScreenPosition(screenId, _screenOriginX, _screenOriginY, _screenWidth, _screenHeight);
     if (_screenWidth==0 || _screenHeight==0) return false;
@@ -1671,20 +1674,20 @@ static int ChooseMatchingPixelFormat( HDC hdc, int screenNum, const WGLIntegerAt
             1,                     // version number
             PFD_DRAW_TO_WINDOW |   // support window
             PFD_SUPPORT_OPENGL |   // support OpenGL
-            (_traits->doubleBuffer ? PFD_DOUBLEBUFFER : NULL) |      // double buffered ?
-            (_traits->swapMethod ==  osg::DisplaySettings::SWAP_COPY ? PFD_SWAP_COPY : NULL) |
-            (_traits->swapMethod ==  osg::DisplaySettings::SWAP_EXCHANGE ? PFD_SWAP_EXCHANGE : NULL),
+            DWORD(_traits->doubleBuffer ? PFD_DOUBLEBUFFER : NULL) |      // double buffered ?
+            DWORD(_traits->swapMethod ==  osg::DisplaySettings::SWAP_COPY ? PFD_SWAP_COPY : NULL) |
+            DWORD(_traits->swapMethod ==  osg::DisplaySettings::SWAP_EXCHANGE ? PFD_SWAP_EXCHANGE : NULL),
             PFD_TYPE_RGBA,         // RGBA type
-            _traits->red + _traits->green + _traits->blue,                // color depth
-            _traits->red ,0, _traits->green ,0, _traits->blue, 0,          // shift bits ignored
-            _traits->alpha,          // alpha buffer ?
+            BYTE(_traits->red + _traits->green + _traits->blue),                      // color depth
+            BYTE(_traits->red), 0, BYTE(_traits->green), 0, BYTE(_traits->blue), 0,   // shift bits ignored
+            BYTE(_traits->alpha),  // alpha buffer ?
             0,                     // shift bit ignored
             0,                     // no accumulation buffer
             0, 0, 0, 0,            // accum bits ignored
-            _traits->depth,          // 32 or 16 bit z-buffer ?
-            _traits->stencil,        // stencil buffer ?
+            BYTE(_traits->depth),      // 32 or 16 bit z-buffer ?
+            BYTE(_traits->stencil),    // stencil buffer ?
             0,                     // no auxiliary buffer
-            PFD_MAIN_PLANE,        // main layer
+            PFD_MAIN_PLANE,  // main layer
             0,                     // reserved
             0, 0, 0                // layer masks ignored
         };
@@ -2273,7 +2276,7 @@ void GraphicsWindowWin32::setCursorImpl( MouseCursor mouseCursor )
 
         _currentCursor = newCursor;
         _traits->useCursor = (_currentCursor != NULL) && (_mouseCursor != NoCursor);
-        
+
         PostMessage(_hwnd, WM_SETCURSOR, 0, 0);
     }
 }
@@ -2733,8 +2736,8 @@ LRESULT GraphicsWindowWin32::handleNativeWindowingEvent( HWND hwnd, UINT uMsg, W
                     UINT scanCode = ::MapVirtualKeyEx( i, 0, ::GetKeyboardLayout(0));
                     // Set Extended Key bit + Scan Code + 30 bit to indicate key was set before sending message
                     // See Windows SDK help on WM_KEYDOWN for explanation
-                    LONG lParam = rightSideCode | ( ( scanCode & 0xFF ) << 16 ) | (1 << 30);
-                    ::SendMessage(hwnd, WM_KEYDOWN, i, lParam );
+                    LONG lParamKey = rightSideCode | ( ( scanCode & 0xFF ) << 16 ) | (1 << 30);
+                    ::SendMessage(hwnd, WM_KEYDOWN, i, lParamKey);
                 }
             }
             break;
@@ -2837,35 +2840,39 @@ LRESULT GraphicsWindowWin32::handleNativeWindowingEvent( HWND hwnd, UINT uMsg, W
             {
                 unsigned int numInputs = (unsigned int) wParam;
                 TOUCHINPUT* ti = new TOUCHINPUT[numInputs];
+                POINT pt;
                 osg::ref_ptr<osgGA::GUIEventAdapter> osg_event(NULL);
                 if(getTouchInputInfoFunc && (*getTouchInputInfoFunc)((HTOUCHINPUT)lParam, numInputs, ti, sizeof(TOUCHINPUT)))
                 {
                     // For each contact, dispatch the message to the appropriate message handler.
                     for(unsigned int i=0; i< numInputs; ++i)
                     {
+                        pt.x =TOUCH_COORD_TO_PIXEL(ti[i].x);
+                        pt.y =TOUCH_COORD_TO_PIXEL(ti[i].y);
+                        ScreenToClient(getHWND(), &pt);
                         if(ti[i].dwFlags & TOUCHEVENTF_DOWN)
                         {
                             if (!osg_event) {
-                                osg_event = getEventQueue()->touchBegan( ti[i].dwID, osgGA::GUIEventAdapter::TOUCH_BEGAN, ti[i].x / 100 , ti[i].y/100);
+                                osg_event = getEventQueue()->touchBegan( ti[i].dwID, osgGA::GUIEventAdapter::TOUCH_BEGAN, pt.x, pt.y);
                             } else {
-                                osg_event->addTouchPoint( ti[i].dwID, osgGA::GUIEventAdapter::TOUCH_BEGAN, ti[i].x / 100, ti[i].y/100);
+                                osg_event->addTouchPoint( ti[i].dwID, osgGA::GUIEventAdapter::TOUCH_BEGAN, pt.x, pt.y);
                             }
                         }
                         else if(ti[i].dwFlags & TOUCHEVENTF_MOVE)
                         {
                             if (!osg_event) {
-                                osg_event = getEventQueue()->touchMoved(  ti[i].dwID, osgGA::GUIEventAdapter::TOUCH_MOVED, ti[i].x/ 100, ti[i].y/ 100);
+                                osg_event = getEventQueue()->touchMoved(  ti[i].dwID, osgGA::GUIEventAdapter::TOUCH_MOVED, pt.x, pt.y);
                             } else {
-                                osg_event->addTouchPoint( ti[i].dwID, osgGA::GUIEventAdapter::TOUCH_MOVED, ti[i].x / 100, ti[i].y/100);
+                                osg_event->addTouchPoint( ti[i].dwID, osgGA::GUIEventAdapter::TOUCH_MOVED, pt.x, pt.y);
                             }
                         }
                         else if(ti[i].dwFlags & TOUCHEVENTF_UP)
                         {
                             // No double tap detection with RAW TOUCH Events, sorry.
                             if (!osg_event) {
-                                osg_event = getEventQueue()->touchEnded( ti[i].dwID, osgGA::GUIEventAdapter::TOUCH_ENDED, ti[i].x/ 100, ti[i].y/ 100, 1);
+                                osg_event = getEventQueue()->touchEnded( ti[i].dwID, osgGA::GUIEventAdapter::TOUCH_ENDED, pt.x, pt.y, 1);
                             } else {
-                                osg_event->addTouchPoint( ti[i].dwID, osgGA::GUIEventAdapter::TOUCH_ENDED, ti[i].x / 100, ti[i].y/100);
+                                osg_event->addTouchPoint( ti[i].dwID, osgGA::GUIEventAdapter::TOUCH_ENDED, pt.x, pt.y);
                             }
                         }
                     }
@@ -2894,7 +2901,7 @@ LRESULT GraphicsWindowWin32::handleNativeWindowingEvent( HWND hwnd, UINT uMsg, W
 //////////////////////////////////////////////////////////////////////////////
 //  Class responsible for registering the Win32 Windowing System interface
 //////////////////////////////////////////////////////////////////////////////
-
+#if 0
 struct RegisterWindowingSystemInterfaceProxy
 {
     RegisterWindowingSystemInterfaceProxy()
@@ -2915,16 +2922,19 @@ struct RegisterWindowingSystemInterfaceProxy
 };
 
 static RegisterWindowingSystemInterfaceProxy createWindowingSystemInterfaceProxy;
+#endif
 
 } // namespace OsgViewer
 
-
+#if 1
+REGISTER_WINDOWINGSYSTEMINTERFACE(Win32, Win32WindowingSystem)
+#else
 // declare C entry point for static compilation.
 extern "C" void OSGVIEWER_EXPORT graphicswindow_Win32(void)
 {
     osg::GraphicsContext::setWindowingSystemInterface(osgViewer::Win32WindowingSystem::getInterface());
 }
-
+#endif
 
 void GraphicsWindowWin32::raiseWindow()
 {

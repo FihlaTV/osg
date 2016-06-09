@@ -475,9 +475,9 @@ dxfPolyline::assign(dxfFile* dxf, codeValue& cv)
 void
 dxfPolyline::drawScene(scene* sc)
 {
-    Matrixd m;
-    getOCSMatrix(_ocs, m);
-    sc->ocs(m);
+    Matrixd matrx;
+    getOCSMatrix(_ocs, matrx);
+    sc->ocs(matrx);
     std::vector<Vec3d> vlist;
     std::vector<Vec3d> qlist;
     Vec3d a, b, c, d;
@@ -490,7 +490,7 @@ dxfPolyline::drawScene(scene* sc)
         unsigned int ncount;
         unsigned int mcount;
         if (_surfacetype == 6) {
-            // I dont have examples of type 5 and 8, but they may be the same as 6
+            // I don't have examples of type 5 and 8, but they may be the same as 6
             mcount = _mdensity;
             ncount = _ndensity;
         } else {

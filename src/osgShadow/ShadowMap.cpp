@@ -89,6 +89,42 @@ ShadowTechnique(copy,copyop),
 {
 }
 
+void ShadowMap::resizeGLObjectBuffers(unsigned int maxSize)
+{
+    osg::resizeGLObjectBuffers(_camera, maxSize);
+    osg::resizeGLObjectBuffers(_texgen, maxSize);
+    osg::resizeGLObjectBuffers(_texture, maxSize);
+    osg::resizeGLObjectBuffers(_stateset, maxSize);
+    osg::resizeGLObjectBuffers(_program, maxSize);
+
+    osg::resizeGLObjectBuffers(_ls, maxSize);
+
+    for(ShaderList::iterator itr = _shaderList.begin();
+        itr != _shaderList.end();
+        ++itr)
+    {
+        osg::resizeGLObjectBuffers(*itr, maxSize);
+    }
+}
+
+void ShadowMap::releaseGLObjects(osg::State* state) const
+{
+    osg::releaseGLObjects(_camera, state);
+    osg::releaseGLObjects(_texgen, state);
+    osg::releaseGLObjects(_texture, state);
+    osg::releaseGLObjects(_stateset, state);
+    osg::releaseGLObjects(_program, state);
+
+    osg::releaseGLObjects(_ls, state);
+
+    for(ShaderList::const_iterator itr = _shaderList.begin();
+        itr != _shaderList.end();
+        ++itr)
+    {
+        osg::releaseGLObjects(*itr, state);
+    }
+}
+
 void ShadowMap::setTextureUnit(unsigned int unit)
 {
     _shadowTextureUnit = unit;
@@ -430,11 +466,11 @@ void ShadowMap::cull(osgUtil::CullVisitor& cv)
             else    // directional light
             {
                 // make an orthographic projection
-                osg::Vec3 lightDir(lightpos.x(), lightpos.y(), lightpos.z());
-                lightDir.normalize();
+                osg::Vec3 ortho_lightDir(lightpos.x(), lightpos.y(), lightpos.z());
+                ortho_lightDir.normalize();
 
                 // set the position far away along the light direction
-                osg::Vec3 position = bb.center() + lightDir * bb.radius() * 2;
+                osg::Vec3 position = bb.center() + ortho_lightDir * bb.radius() * 2;
 
                 float centerDistance = (position-bb.center()).length();
 
@@ -447,7 +483,7 @@ void ShadowMap::cull(osgUtil::CullVisitor& cv)
                 float right = top;
 
                 _camera->setProjectionMatrixAsOrtho(-right, right, -top, top, znear, zfar);
-                _camera->setViewMatrixAsLookAt(position,bb.center(),computeOrthogonalVector(lightDir));
+                _camera->setViewMatrixAsLookAt(position,bb.center(),computeOrthogonalVector(ortho_lightDir));
             }
 
 

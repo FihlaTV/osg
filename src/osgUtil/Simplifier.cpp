@@ -86,9 +86,6 @@ public:
 
     Point* computeInterpolatedPoint(Edge* edge,float r) const
     {
-        Point* point = new Point;
-        float r1 = 1.0f-r;
-        float r2 = r;
         Point* p1 = edge->_p1.get();
         Point* p2 = edge->_p2.get();
 
@@ -97,6 +94,10 @@ public:
             OSG_NOTICE<<"Error computeInterpolatedPoint("<<edge<<",r) p1 and/or p2==0"<<std::endl;
             return 0;
         }
+
+        Point* point = new Point;
+        float r1 = 1.0f-r;
+        float r2 = r;
 
         point->_vertex = p1->_vertex * r1 + p2->_vertex * r2;
         unsigned int s = osg::minimum(p1->_attributes.size(),p2->_attributes.size());
@@ -1744,14 +1745,17 @@ void Simplifier::simplify(osg::Geometry& geometry, const IndexList& protectedPoi
 {
     OSG_INFO<<"++++++++++++++simplifier************"<<std::endl;
 
+    bool downSample = requiresDownSampling();
+
     EdgeCollapse ec;
-    ec.setComputeErrorMetricUsingLength(getSampleRatio()>=1.0);
+    ec.setComputeErrorMetricUsingLength(!downSample);
     ec.setGeometry(&geometry, protectedPoints);
     ec.updateErrorMetricForAllEdges();
 
     unsigned int numOriginalPrimitives = ec._triangleSet.size();
 
-    if (getSampleRatio()<1.0)
+
+    if (downSample)
     {
         while (!ec._edgeSet.empty() &&
                continueSimplification((*ec._edgeSet.begin())->getErrorMetric() , numOriginalPrimitives, ec._triangleSet.size()) &&

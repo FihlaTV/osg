@@ -43,7 +43,9 @@
 #endif
 #if defined (__FreeBSD__) || defined (__APPLE__) || defined (__MACH__)
     #include <sys/types.h>
+#if !defined (__GNU__)
     #include <sys/sysctl.h>
+#endif
 #endif
 
 #if defined(__ANDROID__)
@@ -286,8 +288,6 @@ private:
             pthread_getschedparam(thread->getProcessId(),
                       &th_policy, &th_param);
 
-#ifndef __linux__
-
             switch(thread->getSchedulePolicy())
             {
 
@@ -312,23 +312,9 @@ private:
                 break;
             };
 
-#else
-            th_policy = SCHED_OTHER;  // Must protect linux from realtime.
-#endif
-
-#ifdef __linux__
-
-            max_priority = 0;
-            min_priority = 20;
-            nominal_priority = (max_priority + min_priority)/2;
-
-#else
-
             max_priority = sched_get_priority_max(th_policy);
             min_priority = sched_get_priority_min(th_policy);
             nominal_priority = (max_priority + min_priority)/2;
-
-#endif
 
             switch(thread->getSchedulePriority())
             {
@@ -685,14 +671,15 @@ int Thread::start() {
     status = pthread_attr_setinheritsched( &thread_attr,
                        PTHREAD_EXPLICIT_SCHED );
 
-    pthread_attr_setscope(&thread_attr, PTHREAD_SCOPE_SYSTEM);
-
-#endif // ] ALLOW_PRIORITY_SCHEDULING
-
     if(status != 0)
     {
         return status;
     }
+
+    pthread_attr_setscope(&thread_attr, PTHREAD_SCOPE_SYSTEM);
+
+#endif // ] ALLOW_PRIORITY_SCHEDULING
+
 
     pd->threadStartedBlock.reset();
 
@@ -1012,7 +999,7 @@ int Thread::microSleep(unsigned int microsec)
 //
 int OpenThreads::GetNumberOfProcessors()
 {
-#if defined(__linux__)
+#if defined(__linux__) || defined(__GNU__)
    long ret = sysconf(_SC_NPROCESSORS_ONLN);
    if (ret == -1)
       return 0;

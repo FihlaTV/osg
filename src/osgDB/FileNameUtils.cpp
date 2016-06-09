@@ -30,6 +30,10 @@
     using std::tolower;
 #endif
 
+#if defined(__GNU__) && !defined(PATH_MAX)
+#define PATH_MAX 4096
+#endif
+
 using namespace std;
 
 static const char * const PATH_SEPARATORS = "/\\";
@@ -436,6 +440,7 @@ bool osgDB::isAbsolutePath(const std::string& path) {
     if (path[0] == '/') return true;
     // Now test for Windows root
     if (path.length()<2) return false;
+    if (path[0] == '\\' && path[1] == '\\') return true;
     return path[1] == ':';        // We should check that path[0] is a letter, but as ':' is invalid in paths in other cases, that's not a problem.
 }
 

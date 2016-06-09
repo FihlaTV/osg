@@ -28,6 +28,7 @@
 #include <osg/Projection>
 #include <osg/Switch>
 #include <osg/Texture2D>
+#include <osg/ContextData>
 
 #include <osgDB/ReadFile>
 #include <osgGA/GUIEventHandler>
@@ -107,7 +108,7 @@ typedef vector<BufferConfig> BufferConfigList;
 
 vector<FboConfig> validConfigs;
 // Ugly global variables for the viewport width and height
-int width, height;
+// int width, height;
 
 // This is only used when testing possible frame buffer configurations
 // to find valid ones.
@@ -313,12 +314,9 @@ void destroyFBO(GraphicsContext* gc, FboData &data)
     data.fb = 0;
     data.resolveFB = 0;
     State& state = *gc->getState();
-    double availableTime = 100.0;
-    RenderBuffer::flushDeletedRenderBuffers(state.getContextID(), 0.0,
-                                            availableTime);
-    availableTime = 100.0;
-    FrameBufferObject::flushDeletedFrameBufferObjects(state.getContextID(),
-                                                      0.0, availableTime);
+
+    osg::get<GLRenderBufferManager>(state.getContextID())->flushAllDeletedGLObjects();
+    osg::get<GLFrameBufferObjectManager>(state.getContextID())->flushAllDeletedGLObjects();
 }
 
 void setAttachmentsFromConfig(Camera* camera, const FboConfig& config);
@@ -408,10 +406,10 @@ AppState::AppState(osgViewer::Viewer* viewer_)
 
 void AppState::setStateFromConfig(const FboConfig& config)
 {
-    Camera* camera = viewer->getSlave(0)._camera.get();
-    setAttachmentsFromConfig(camera, config);
+    Camera* cam = viewer->getSlave(0)._camera.get();
+    setAttachmentsFromConfig(cam, config);
     osgViewer::Renderer* renderer
-        = dynamic_cast<osgViewer::Renderer*>(camera->getRenderer());
+        = dynamic_cast<osgViewer::Renderer*>(cam->getRenderer());
     if (renderer)
         renderer->setCameraRequiresSetUp(true);
     if (configText.valid())
@@ -956,14 +954,14 @@ int main(int argc, char **argv)
         return 1;
     gc->setResizedCallback(new ResizedCallback(appState.get()));
     const GraphicsContext::Traits* traits = gc->getTraits();
-    width = traits->width;
-    height = traits->height;
+    int width = traits->width;
+    int height = traits->height;
     if (arguments.argc()<=1)
     {
         arguments.getApplicationUsage()->write(std::cout,osg::ApplicationUsage::COMMAND_LINE_OPTION);
         return 1;
     }
-    ref_ptr<Node> loadedModel = osgDB::readNodeFiles(arguments);
+    ref_ptr<Node> loadedModel = osgDB::readRefNodeFiles(arguments);
     if (!loadedModel) {
         cerr << "couldn't load " << argv[1] << "\n";
         return 1;

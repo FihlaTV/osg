@@ -142,7 +142,7 @@ enum Channel
 class ShaderStorageBufferCallback : public osg::StateAttributeCallback
 {
 public:
-    void operator() (osg::StateAttribute* attr, osg::NodeVisitor* nv)
+    void operator() (osg::StateAttribute* /*attr*/, osg::NodeVisitor* /*nv*/)
     {
         //if you need to process the data in your app-code , better leaving it on GPU and processing there, uploading per frame will make it slow
 #if 0
@@ -311,7 +311,7 @@ public:
 //set  OSG_FILE_PATH for loading axes.osgt
 void ComputeNode::addHelperGeometry()
 {
-    _helperNode = osgDB::readNodeFile("axes.osgt");
+    _helperNode = osgDB::readRefNodeFile("axes.osgt");
 
     if (_helperNode.valid())
     {
@@ -464,8 +464,8 @@ void ComputeNode::addDataMonitor(osg::Vec3 placement, osg::Vec3 relativePlacemen
     ss->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 
     //add a label
-    osgText::Text* text = new osgText::Text;
-    osgText::Font* font = osgText::readFontFile("fonts/arial.ttf");
+    osg::ref_ptr<osgText::Text> text = new osgText::Text;
+    osg::ref_ptr<osgText::Font> font = osgText::readRefFontFile("fonts/arial.ttf");
     text->setFont(font);
     text->setColor(osg::Vec4(1, 1, 1, 1));
     text->setCharacterSize(0.1*scale);
@@ -500,9 +500,9 @@ osg::Image* createSpotLightImage(const osg::Vec4& centerColour, const osg::Vec4&
         {
             float dx = (float(c) - mid)*div;
             float dy = (float(r) - mid)*div;
-            float r = powf(1.0f - sqrtf(dx*dx + dy*dy), power);
-            if (r < 0.0f) r = 0.0f;
-            osg::Vec4 color = centerColour*r + backgroudColour*(1.0f - r);
+            float pr = powf(1.0f - sqrtf(dx*dx + dy*dy), power);
+            if (pr < 0.0f) pr = 0.0f;
+            osg::Vec4 color = centerColour*pr + backgroudColour*(1.0f - pr);
             *ptr++ = (unsigned char)((color[0])*255.0f);
             *ptr++ = (unsigned char)((color[1])*255.0f);
             *ptr++ = (unsigned char)((color[2])*255.0f);

@@ -65,8 +65,8 @@ void Text3D::accept(osg::PrimitiveFunctor& pf) const
     for (itLine = _textRenderInfo.begin(); itLine!=endLine; ++itLine)
     {
         // ** for each glyph in the line, do ...
-        LineRenderInfo::const_iterator it, end = itLine->end();
-        for (it = itLine->begin(); it!=end; ++it)
+        LineRenderInfo::const_iterator it, line_end = itLine->end();
+        for (it = itLine->begin(); it!=line_end; ++it)
         {
             osg::Vec3Array* vertices = it->_glyphGeometry->getVertexArray();
 
@@ -135,7 +135,7 @@ String::iterator Text3D::computeLastCharacterOnLine(osg::Vec2& cursor, String::i
             return lastChar;
         }
 
-        Glyph3D* glyph = _font->getGlyph3D(charcode);
+        Glyph3D* glyph = _font->getGlyph3D(_fontSize, charcode);
         if (glyph)
         {
             const osg::BoundingBox & bb = glyph->getBoundingBox();
@@ -152,14 +152,14 @@ String::iterator Text3D::computeLastCharacterOnLine(osg::Vec2& cursor, String::i
                 {
                   case LEFT_TO_RIGHT:
                   {
-                    osg::Vec2 delta(_font->getKerning(previous_charcode,charcode,_kerningType));
+                    osg::Vec2 delta(_font->getKerning(_fontSize, previous_charcode, charcode, _kerningType));
                     cursor.x() += delta.x() * wr;
                     cursor.y() += delta.y() * hr;
                     break;
                   }
                   case RIGHT_TO_LEFT:
                   {
-                    osg::Vec2 delta(_font->getKerning(charcode,previous_charcode,_kerningType));
+                    osg::Vec2 delta(_font->getKerning(_fontSize, charcode, previous_charcode, _kerningType));
                     cursor.x() -= delta.x() * wr;
                     cursor.y() -= delta.y() * hr;
                     break;
@@ -226,7 +226,7 @@ String::iterator Text3D::computeLastCharacterOnLine(osg::Vec2& cursor, String::i
             // Subtract off glyphs from the cursor position (to correctly center text)
                 if(*prevChar != '-')
             {
-                Glyph3D* glyph = _font->getGlyph3D(*prevChar);
+                Glyph3D* glyph = _font->getGlyph3D(_fontSize, *prevChar);
                 if (glyph)
                 {
                     switch(_layout)
@@ -299,7 +299,7 @@ void Text3D::computeGlyphRepresentation()
             {
                 unsigned int charcode = *itr;
 
-                Glyph3D* glyph = _font->getGlyph3D(charcode);
+                Glyph3D* glyph = _font->getGlyph3D(_fontSize, charcode);
                 if (glyph)
                 {
                     const osg::BoundingBox & bb = glyph->getBoundingBox();
@@ -316,14 +316,14 @@ void Text3D::computeGlyphRepresentation()
                         {
                           case LEFT_TO_RIGHT:
                           {
-                            osg::Vec2 delta(_font->getKerning(previous_charcode,charcode,_kerningType));
+                            osg::Vec2 delta(_font->getKerning(_fontSize, previous_charcode, charcode, _kerningType));
                             cursor.x() += delta.x() * wr;
                             cursor.y() += delta.y() * hr;
                             break;
                           }
                           case RIGHT_TO_LEFT:
                           {
-                            osg::Vec2 delta(_font->getKerning(charcode,previous_charcode,_kerningType));
+                            osg::Vec2 delta(_font->getKerning(_fontSize, charcode, previous_charcode, _kerningType));
                             cursor.x() -= delta.x() * wr;
                             cursor.y() -= delta.y() * hr;
                             break;
@@ -601,12 +601,12 @@ void Text3D::renderPerGlyph(osg::State & state) const
     else if (backStateSet->getAttribute(osg::StateAttribute::MATERIAL)!=0) applyMainColor = true;
 
     // ** for each line, do ...
-    TextRenderInfo::const_iterator itLine, endLine = _textRenderInfo.end();
-    for (itLine = _textRenderInfo.begin(); itLine!=endLine; ++itLine)
+    TextRenderInfo::const_iterator itLine, endText = _textRenderInfo.end();
+    for (itLine = _textRenderInfo.begin(); itLine!=endText; ++itLine)
     {
         // ** for each glyph in the line, do ...
-        LineRenderInfo::const_iterator it, end = itLine->end();
-        for (it = itLine->begin(); it!=end; ++it)
+        LineRenderInfo::const_iterator it, endLine = itLine->end();
+        for (it = itLine->begin(); it!=endLine; ++it)
         {
 
             osg::Matrix matrix(original_modelview);
@@ -677,12 +677,12 @@ void Text3D::renderPerFace(osg::State & state) const
     else if (backStateSet->getAttribute(osg::StateAttribute::MATERIAL)!=0) applyMainColor = true;
 
 
-    TextRenderInfo::const_iterator itLine, endLine = _textRenderInfo.end();
-    for (itLine = _textRenderInfo.begin(); itLine!=endLine; ++itLine)
+    TextRenderInfo::const_iterator itLine, endText = _textRenderInfo.end();
+    for (itLine = _textRenderInfo.begin(); itLine!=endText; ++itLine)
     {
         // ** for each glyph in the line, do ...
-        LineRenderInfo::const_iterator it, end = itLine->end();
-        for (it = itLine->begin(); it!=end; ++it)
+        LineRenderInfo::const_iterator it, endLine = itLine->end();
+        for (it = itLine->begin(); it!=endLine; ++it)
         {
             osg::Matrix matrix(original_modelview);
             matrix.preMultTranslate(osg::Vec3d(it->_position.x(), it->_position.y(), it->_position.z()));
@@ -703,11 +703,11 @@ void Text3D::renderPerFace(osg::State & state) const
     if (wallStateSet!=frontStateSet) state.apply(wallStateSet);
 
     // ** render all wall face of the text
-    for (itLine = _textRenderInfo.begin(); itLine!=endLine; ++itLine)
+    for (itLine = _textRenderInfo.begin(); itLine!=endText; ++itLine)
     {
         // ** for each glyph in the line, do ...
-        LineRenderInfo::const_iterator it, end = itLine->end();
-        for (it = itLine->begin(); it!=end; ++it)
+        LineRenderInfo::const_iterator it, endLine = itLine->end();
+        for (it = itLine->begin(); it!=endLine; ++it)
         {
             osg::Matrix matrix(original_modelview);
             matrix.preMultTranslate(osg::Vec3d(it->_position.x(), it->_position.y(), it->_position.z()));
@@ -736,11 +736,11 @@ void Text3D::renderPerFace(osg::State & state) const
         if (applyMainColor) state.Color(_color.r(),_color.g(),_color.b(),_color.a());
     }
 
-    for (itLine = _textRenderInfo.begin(); itLine!=endLine; ++itLine)
+    for (itLine = _textRenderInfo.begin(); itLine!=endText; ++itLine)
     {
         // ** for each glyph in the line, do ...
-        LineRenderInfo::const_iterator it, end = itLine->end();
-        for (it = itLine->begin(); it!=end; ++it)
+        LineRenderInfo::const_iterator it, endLine = itLine->end();
+        for (it = itLine->begin(); it!=endLine; ++it)
         {
             osg::Matrix matrix(original_modelview);
             matrix.preMultTranslate(osg::Vec3d(it->_position.x(), it->_position.y(), it->_position.z()));

@@ -39,10 +39,10 @@ typedef std::vector< osg::ref_ptr<osg::Image> > ImageList;
 osg::StateSet* createState()
 {
     // read 4 2d images
-    osg::ref_ptr<osg::Image> image_0 = osgDB::readImageFile("Images/lz.rgb");
-    osg::ref_ptr<osg::Image> image_1 = osgDB::readImageFile("Images/reflect.rgb");
-    osg::ref_ptr<osg::Image> image_2 = osgDB::readImageFile("Images/tank.rgb");
-    osg::ref_ptr<osg::Image> image_3 = osgDB::readImageFile("Images/skymap.jpg");
+    osg::ref_ptr<osg::Image> image_0 = osgDB::readRefImageFile("Images/lz.rgb");
+    osg::ref_ptr<osg::Image> image_1 = osgDB::readRefImageFile("Images/reflect.rgb");
+    osg::ref_ptr<osg::Image> image_2 = osgDB::readRefImageFile("Images/tank.rgb");
+    osg::ref_ptr<osg::Image> image_3 = osgDB::readRefImageFile("Images/skymap.jpg");
 
     if (!image_0 || !image_1 || !image_2 || !image_3)
     {
@@ -81,7 +81,7 @@ osg::StateSet* createState()
     // set up the 3d texture itself,
     // note, well set the filtering up so that mip mapping is disabled,
     // gluBuild3DMipsmaps doesn't do a very good job of handled the
-    // inbalanced dimensions of the 256x256x4 texture.
+    // imbalanced dimensions of the 256x256x4 texture.
     osg::Texture3D* texture3D = new osg::Texture3D;
     texture3D->setFilter(osg::Texture3D::MIN_FILTER,osg::Texture3D::LINEAR);
     texture3D->setFilter(osg::Texture3D::MAG_FILTER,osg::Texture3D::LINEAR);

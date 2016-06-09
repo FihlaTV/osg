@@ -161,9 +161,9 @@ class RTTCameraCullCallback : public osg::NodeCallback
             _tileData(tileData),
             _mt(mt) {}
 
-        virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
+        virtual void operator()(osg::Node* /*node*/, osg::NodeVisitor* nv)
         {
-            osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
+            osgUtil::CullVisitor* cv = nv->asCullVisitor();
 
             cv->pushProjectionMatrix(_tileData->projectionMatrix.get());
 
@@ -935,9 +935,9 @@ class RTTBackfaceCameraCullCallback : public osg::NodeCallback
             _tileData(tileData),
             _mt(mt) {}
 
-        virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
+        virtual void operator()(osg::Node* /*node*/, osg::NodeVisitor* nv)
         {
-            osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
+            osgUtil::CullVisitor* cv = nv->asCullVisitor();
 
             cv->pushProjectionMatrix(_tileData->projectionMatrix.get());
 
@@ -963,10 +963,10 @@ class ShadingModelVisitor : public osgVolume::PropertyVisitor
             _shadingModel(VolumeSettings::Standard),
             _usesTransferFunction(false) {}
 
-        virtual void apply(IsoSurfaceProperty& iso) { _shadingModel = VolumeSettings::Isosurface; }
-        virtual void apply(MaximumIntensityProjectionProperty& mip) { _shadingModel = VolumeSettings::MaximumIntensityProjection; }
-        virtual void apply(LightingProperty& lp) { _shadingModel = VolumeSettings::Light; }
-        virtual void apply(TransferFunctionProperty& tf) { _usesTransferFunction = true; }
+        virtual void apply(IsoSurfaceProperty& /*iso*/) { _shadingModel = VolumeSettings::Isosurface; }
+        virtual void apply(MaximumIntensityProjectionProperty& /*mip*/) { _shadingModel = VolumeSettings::MaximumIntensityProjection; }
+        virtual void apply(LightingProperty& /*lp*/) { _shadingModel = VolumeSettings::Light; }
+        virtual void apply(TransferFunctionProperty& /*tf*/) { _usesTransferFunction = true; }
         virtual void apply(VolumeSettings& vs) { _shadingModel = vs.getShadingModel(); }
 
         VolumeSettings::ShadingModel    _shadingModel;
@@ -1157,7 +1157,7 @@ void MultipassTechnique::traverse(osg::NodeVisitor& nv)
     {
         if (_volumeTile->getDirty()) _volumeTile->init();
 
-        osgUtil::UpdateVisitor* uv = dynamic_cast<osgUtil::UpdateVisitor*>(&nv);
+        osgUtil::UpdateVisitor* uv = nv.asUpdateVisitor();
         if (uv)
         {
             update(uv);
@@ -1167,7 +1167,7 @@ void MultipassTechnique::traverse(osg::NodeVisitor& nv)
     }
     else if (nv.getVisitorType()==osg::NodeVisitor::CULL_VISITOR)
     {
-        osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor*>(&nv);
+        osgUtil::CullVisitor* cv = nv.asCullVisitor();
         if (cv)
         {
             cull(cv);

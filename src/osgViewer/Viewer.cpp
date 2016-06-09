@@ -165,7 +165,7 @@ Viewer::Viewer(osg::ArgumentParser& arguments)
         std::string intensityMapFilename;
         while (arguments.read("--im",intensityMapFilename)) {}
 
-        osg::ref_ptr<osg::Image> intensityMap = intensityMapFilename.empty() ? 0 : osgDB::readImageFile(intensityMapFilename);
+        osg::ref_ptr<osg::Image> intensityMap = intensityMapFilename.empty() ? 0 : osgDB::readRefImageFile(intensityMapFilename);
 
         if (screenNum<0) screenNum = 0;
 
@@ -297,7 +297,7 @@ bool Viewer::readConfiguration(const std::string& filename)
 {
     OSG_INFO<<"Viewer::readConfiguration("<<filename<<")"<<std::endl;
 
-    osg::ref_ptr<osg::Object> object = osgDB::readObjectFile(filename);
+    osg::ref_ptr<osg::Object> object = osgDB::readRefObjectFile(filename);
     if (!object)
     {
         //OSG_NOTICE<<"Error: Unable to load configuration file \""<<filename<<"\""<<std::endl;
@@ -308,7 +308,7 @@ bool Viewer::readConfiguration(const std::string& filename)
     if (config)
     {
         OSG_INFO<<"Using osgViewer::Config : "<<config->className()<<std::endl;
-        
+
         config->configure(*this);
 
         //osgDB::writeObjectFile(*config,"test.osgt");
@@ -358,22 +358,26 @@ bool Viewer::isRealized() const
 
 bool Viewer::checkNeedToDoFrame()
 {
+    // check if any event handler has prompted a redraw
     if (_requestRedraw) return true;
     if (_requestContinousUpdate) return true;
 
+    // check if the database pager needs to update the scene
+    if (getDatabasePager()->requiresUpdateSceneGraph() || getDatabasePager()->getRequestsInProgress()) return true;
 
-    // If the database pager is going to update the scene the render flag is
-    // set so that the updates show up
-    if(getDatabasePager()->requiresUpdateSceneGraph() || getDatabasePager()->getRequestsInProgress()) return true;
-
-    // if there update callbacks then we need to do frame.
+    // check if there are camera update callbacks
     if (_camera->getUpdateCallback()) return true;
-    if (getSceneData()!=0 && getSceneData()->getNumChildrenRequiringUpdateTraversal()>0) return true;
+
+    // check if there are node update callbacks
+    if (getSceneData() != 0)
+    {
+        if (getSceneData()->getUpdateCallback() || (getSceneData()->getNumChildrenRequiringUpdateTraversal()>0) ) return true;
+    }
 
     // check if events are available and need processing
     if (checkEvents()) return true;
 
-    // now check if any of the event handles have prompted a redraw.
+    // and check again if any event handler has prompted a redraw
     if (_requestRedraw) return true;
     if (_requestContinousUpdate) return true;
 
@@ -849,7 +853,8 @@ void Viewer::reprojectPointerData(osgGA::GUIEventAdapter& source_event, osgGA::G
 
     dest_event.setMouseYOrientationAndUpdateCoords(osgGA::GUIEventAdapter::Y_INCREASING_UPWARDS);
 
-    osg::Camera* camera = (source_event.getNumPointerData()>=2) ? dynamic_cast<osg::Camera*>(source_event.getPointerData(1)->object.get()) : 0;
+    osg::Object* object = (source_event.getNumPointerData()>=2) ? source_event.getPointerData(1)->object.get() : 0;
+    osg::Camera* camera = object ? object->asCamera() : 0;
     osg::Viewport* viewport = camera ? camera->getViewport() : 0;
 
     if (!viewport) return;
@@ -986,7 +991,7 @@ void Viewer::eventTraversal()
     // create a frame event for the new frame.
     {
         osg::ref_ptr<osgGA::GUIEventAdapter> event = _eventQueue->frame( getFrameStamp()->getReferenceTime() );
-        
+
         if (!eventState || eventState->getNumPointerData()<2)
         {
             generatePointerData(*event);
@@ -996,7 +1001,7 @@ void Viewer::eventTraversal()
             reprojectPointerData(*eventState, *event);
         }
     }
-    
+
     // OSG_NOTICE<<"mouseEventState Xmin = "<<eventState->getXmin()<<" Ymin="<<eventState->getYmin()<<" xMax="<<eventState->getXmax()<<" Ymax="<<eventState->getYmax()<<std::endl;
 
     _eventQueue->takeEvents(events, cutOffTime);

@@ -145,14 +145,14 @@ public:
 
       virtual void setVertexArray(unsigned int,const osg::Vec2*) {}
 
-      virtual void setVertexArray(unsigned int count,const osg::Vec3* vecs) {}
+      virtual void setVertexArray(unsigned int,const osg::Vec3*) {}
 
-      virtual void setVertexArray(unsigned int,const osg::Vec4* ) {}
+      virtual void setVertexArray(unsigned int,const osg::Vec4*) {}
 
       virtual void setVertexArray(unsigned int,const osg::Vec2d*) {}
 
-      virtual void setVertexArray(unsigned int ,const osg::Vec3d* ) {}
-      virtual void setVertexArray(unsigned int,const osg::Vec4d* ) {}
+      virtual void setVertexArray(unsigned int ,const osg::Vec3d*) {}
+      virtual void setVertexArray(unsigned int,const osg::Vec4d*) {}
 
 
       // operator for triangles
@@ -358,8 +358,8 @@ void PrimitiveIndexWriter::drawArrays(GLenum mode,GLint first,GLsizei count)
 
 
 
-WriterNodeVisitor::Material::Material(WriterNodeVisitor & writerNodeVisitor, osg::StateSet * stateset, osg::Material* mat, osg::Texture* tex, bool preserveName, int index) :
-    index(index),
+WriterNodeVisitor::Material::Material(WriterNodeVisitor & writerNodeVisitor, osg::StateSet * stateset, osg::Material* mat, osg::Texture* tex, bool preserveName, int ind) :
+    index(ind),
     diffuse(1,1,1,1),
     ambient(0.2,0.2,0.2,1),
     specular(0,0,0,1),

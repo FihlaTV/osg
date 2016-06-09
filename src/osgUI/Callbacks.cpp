@@ -27,7 +27,10 @@ CloseCallback::CloseCallback(const std::string& callbackName, osgUI::Widget* clo
     setName(callbackName);
 }
 
-CloseCallback::CloseCallback(const CloseCallback& hc, const osg::CopyOp& copyop)
+CloseCallback::CloseCallback(const CloseCallback& hc, const osg::CopyOp& copyop):
+    osg::Object(hc, copyop),
+    osg::Callback(hc, copyop),
+    osg::CallbackObject(hc, copyop)
 {
 }
 
@@ -38,7 +41,7 @@ bool CloseCallback::run(osg::Object* object, osg::Parameters&, osg::Parameters&)
         _closeWidget->setVisible(false);
     }
 
-    osg::Node* node = dynamic_cast<osg::Node*>(object);
+    osg::Node* node = object->asNode();
     if (node)
     {
         osg::NodePathList nodePathList = node->getParentalNodePaths();
@@ -70,11 +73,13 @@ HandleCallback::HandleCallback()
 }
 
 HandleCallback::HandleCallback(const HandleCallback& hc, const osg::CopyOp& copyop):
+    osg::Object(hc, copyop),
+    osg::Callback(hc, copyop),
     osg::CallbackObject(hc, copyop)
 {
 }
 
-bool HandleCallback::run(osg::Object* object, osg::Parameters& inputParameters, osg::Parameters& outputParameters) const
+bool HandleCallback::run(osg::Object* /*object*/, osg::Parameters& inputParameters, osg::Parameters& outputParameters) const
 {
     if (inputParameters.size()>=2)
     {
@@ -89,7 +94,7 @@ bool HandleCallback::run(osg::Object* object, osg::Parameters& inputParameters, 
     return false;
 }
 
-bool HandleCallback::handle(osgGA::EventVisitor* ev, osgGA::Event* event) const
+bool HandleCallback::handle(osgGA::EventVisitor* /*ev*/, osgGA::Event* /*event*/) const
 {
     return false;
 }
@@ -101,6 +106,8 @@ DragCallback::DragCallback():
 }
 
 DragCallback::DragCallback(const DragCallback& hc, const osg::CopyOp& copyop):
+    osg::Object(hc, copyop),
+    osg::Callback(hc, copyop),
     HandleCallback(hc, copyop)
 {
 }

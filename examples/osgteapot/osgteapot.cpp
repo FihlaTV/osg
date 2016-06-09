@@ -250,7 +250,7 @@ class Teapot : public osg::Drawable
         {
             osg::BoundingBox bbox;
 
-            // follow is some truely horrible code required to calculate the
+            // follow is some truly horrible code required to calculate the
             // bounding box of the teapot.  Have used the original code above to do
             // help compute it.
             float p[4][4][3], q[4][4][3], r[4][4][3], s[4][4][3];
@@ -311,7 +311,7 @@ osg::Geode* createTeapot()
     geode->addDrawable( new Teapot );
 
     // add a reflection map to the teapot.
-    osg::Image* image = osgDB::readImageFile("Images/reflect.rgb");
+    osg::ref_ptr<osg::Image> image = osgDB::readRefImageFile("Images/reflect.rgb");
     if (image)
     {
         osg::Texture2D* texture = new osg::Texture2D;

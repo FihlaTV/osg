@@ -76,10 +76,10 @@ bool RigTransformHardware::createPalette(int nbVertexes, BoneMap boneMap, const 
     vertexIndexWeight.resize(nbVertexes);
 
     int maxBonePerVertex = 0;
-    for (VertexInfluenceSet::VertexIndexToBoneWeightMap::const_iterator it = vertexIndexToBoneWeightMap.begin(); it != vertexIndexToBoneWeightMap.end(); ++it)
+    for (VertexInfluenceSet::VertexIndexToBoneWeightMap::const_iterator vis_itr = vertexIndexToBoneWeightMap.begin(); vis_itr != vertexIndexToBoneWeightMap.end(); ++vis_itr)
     {
-        int vertexIndex = it->first;
-        const VertexInfluenceSet::BoneWeightList& boneWeightList = it->second;
+        int vertexIndex = vis_itr->first;
+        const VertexInfluenceSet::BoneWeightList& boneWeightList = vis_itr->second;
         int bonesForThisVertex = 0;
         for (VertexInfluenceSet::BoneWeightList::const_iterator it = boneWeightList.begin(); it != boneWeightList.end(); ++it)
         {
@@ -90,7 +90,7 @@ bool RigTransformHardware::createPalette(int nbVertexes, BoneMap boneMap, const 
                 bonesForThisVertex++; // count max number of bones per vertexes
                 vertexIndexWeight[vertexIndex].push_back(IndexWeightEntry(bname2palette[bw.getBoneName()],bw.getWeight()));
             }
-            else if (fabs(bw.getWeight()) > 1e-2) // dont use bone with weight too small
+            else if (fabs(bw.getWeight()) > 1e-2) // don't use bone with weight too small
             {
                 if (boneMap.find(bw.getBoneName()) == boneMap.end())
                 {

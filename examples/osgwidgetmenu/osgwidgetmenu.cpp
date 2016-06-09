@@ -33,13 +33,13 @@ struct ColorLabel: public osgWidget::Label {
 
     bool mouseEnter(double, double, const osgWidget::WindowManager*) {
         setColor(0.6f, 0.6f, 0.6f, 1.0f);
-        
+
         return true;
     }
 
     bool mouseLeave(double, double, const osgWidget::WindowManager*) {
         setColor(0.3f, 0.3f, 0.3f, 1.0f);
-        
+
         return true;
     }
 };
@@ -97,7 +97,8 @@ public:
     }
 };
 
-int main(int argc, char** argv) {
+int main(int, char**)
+{
     osgViewer::Viewer viewer;
 
     osgWidget::WindowManager* wm = new osgWidget::WindowManager(
@@ -116,13 +117,13 @@ int main(int argc, char** argv) {
     menu->addWidget(new ColorLabelMenu("Grarar!?!"));
 
     wm->addChild(menu);
-    
+
     menu->getBackground()->setColor(1.0f, 1.0f, 1.0f, 0.0f);
     menu->resizePercent(100.0f);
 
-    osg::Node* model = osgDB::readNodeFile("osgcool.osgt");
+    osg::ref_ptr<osg::Node> model = osgDB::readRefNodeFile("osgcool.osgt");
 
     model->setNodeMask(MASK_3D);
 
-    return osgWidget::createExample(viewer, wm, model);
+    return osgWidget::createExample(viewer, wm, model.get());
 }

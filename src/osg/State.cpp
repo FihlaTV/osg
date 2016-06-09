@@ -17,6 +17,7 @@
 #include <osg/GLExtensions>
 #include <osg/Drawable>
 #include <osg/ApplicationUsage>
+#include <osg/ContextData>
 
 #include <sstream>
 #include <algorithm>
@@ -78,6 +79,10 @@ State::State():
     if (str && (strcmp(str,"ONCE_PER_ATTRIBUTE")==0 || strcmp(str,"ON")==0 || strcmp(str,"on")==0))
     {
         _checkGLErrors = ONCE_PER_ATTRIBUTE;
+    }
+    else if(str && (strcmp(str, "OFF") == 0 || strcmp(str, "off") == 0))
+    {
+        _checkGLErrors = NEVER_CHECK_GL_ERRORS;
     }
 
     _currentActiveTextureUnit=0;
@@ -301,14 +306,14 @@ void State::setInitialViewMatrix(const osg::RefMatrix* matrix)
 void State::setMaxTexturePoolSize(unsigned int size)
 {
     _maxTexturePoolSize = size;
-    osg::Texture::getTextureObjectManager(getContextID())->setMaxTexturePoolSize(size);
+    osg::get<TextureObjectManager>(_contextID)->setMaxTexturePoolSize(size);
     OSG_INFO<<"osg::State::_maxTexturePoolSize="<<_maxTexturePoolSize<<std::endl;
 }
 
 void State::setMaxBufferObjectPoolSize(unsigned int size)
 {
     _maxBufferObjectPoolSize = size;
-    osg::GLBufferObjectManager::getGLBufferObjectManager(getContextID())->setMaxGLBufferObjectPoolSize(_maxBufferObjectPoolSize);
+    osg::get<GLBufferObjectManager>(_contextID)->setMaxGLBufferObjectPoolSize(_maxBufferObjectPoolSize);
     OSG_INFO<<"osg::State::_maxBufferObjectPoolSize="<<_maxBufferObjectPoolSize<<std::endl;
 }
 
@@ -1859,16 +1864,16 @@ std::string State::getDefineString(const osg::ShaderDefines& shaderDefines)
             const StateSet::DefinePair& dp = cd_itr->second;
             shaderDefineStr += "#define ";
             shaderDefineStr += cd_itr->first;
-            if (dp.first.empty())
-            {
-                shaderDefineStr += "\n";
-            }
-            else
+            if (!dp.first.empty())
             {
                 shaderDefineStr += " ";
                 shaderDefineStr += dp.first;
-                shaderDefineStr += "\n";
             }
+#ifdef WIN32
+            shaderDefineStr += "\r\n";
+#else
+            shaderDefineStr += "\n";
+#endif
 
             ++sd_itr;
             ++cd_itr;

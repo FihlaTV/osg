@@ -155,10 +155,10 @@ void ProxyNode::read(DataInputStream* in)
         // Read ProxyNode's identification.
         id = in->readInt();
         // If the osg class is inherited by any other class we should also read this from file.
-        osg::Node* node = dynamic_cast<osg::Node*>(this);
-        if(node)
+        osg::Node* nodePtr = dynamic_cast<osg::Node*>(this);
+        if(nodePtr)
         {
-            ((ive::Node*)(node))->read(in);
+            ((ive::Node*)(nodePtr))->read(in);
         }
         else
             in_THROW_EXCEPTION("ProxyNode::read(): Could not cast this osg::ProxyNode to an osg::Node.");
@@ -205,7 +205,7 @@ void ProxyNode::read(DataInputStream* in)
                 {
                     osgDB::FilePathList& fpl = ((osgDB::ReaderWriter::Options*)in->getOptions())->getDatabasePathList();
                     fpl.push_front( fpl.empty() ? osgDB::getFilePath(getFileName(i)) : fpl.front()+'/'+ osgDB::getFilePath(getFileName(i)));
-                    osg::Node *node = osgDB::readNodeFile(getFileName(i), in->getOptions());
+                    osg::ref_ptr<osg::Node> node = osgDB::readRefNodeFile(getFileName(i), in->getOptions());
                     fpl.pop_front();
 
                     if(node)

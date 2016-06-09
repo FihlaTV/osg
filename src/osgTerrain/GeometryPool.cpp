@@ -149,9 +149,6 @@ osg::ref_ptr<SharedGeometry> GeometryPool::getOrCreateGeometry(osgTerrain::Terra
     LocationCoords locationCoords;
     locationCoords.reserve(numVertices);
 
-    osg::Vec3d pos(0.0, 0.0, 0.0);
-    osg::Vec3d normal(0.0, 0.0, 1.0);
-    osg::Vec2 delta(1.0f/static_cast<float>(nx), 1.0f/static_cast<float>(ny));
 
     // pass in the delta texcoord per texel via the color array
     (*colours)[0].x() = c_mult;
@@ -166,30 +163,37 @@ osg::ref_ptr<SharedGeometry> GeometryPool::getOrCreateGeometry(osgTerrain::Terra
         matrix = locator->getTransform();
     }
 
+    double skirtHeight = -1.0;
+
     // compute the size of the skirtHeight
-    osg::Vec3d bottom_left(0.0,0.0,0.0);
-    osg::Vec3d top_right(1.0,1.0,0.0);
-
-    // transform for unit coords to local coords of the tile
-    bottom_left = bottom_left * matrix;
-    top_right = top_right * matrix;
-
-    // if we have a geocentric database then transform into geocentric coords.
-    const osg::EllipsoidModel* em = locator->getEllipsoidModel();
-    if (em && locator->getCoordinateSystemType()==osgTerrain::Locator::GEOCENTRIC)
     {
-        // note y axis maps to latitude, x axis to longitude
-        em->convertLatLongHeightToXYZ(bottom_left.y(), bottom_left.x(), bottom_left.z(), bottom_left.x(), bottom_left.y(), bottom_left.z());
-        em->convertLatLongHeightToXYZ(top_right.y(), top_right.x(), top_right.z(), top_right.x(), top_right.y(), top_right.z());
+        osg::Vec3d bottom_left(0.0,0.0,0.0);
+        osg::Vec3d top_right(1.0,1.0,0.0);
+
+        // transform for unit coords to local coords of the tile
+        bottom_left = bottom_left * matrix;
+        top_right = top_right * matrix;
+
+        // if we have a geocentric database then transform into geocentric coords.
+        const osg::EllipsoidModel* em = locator->getEllipsoidModel();
+        if (em && locator->getCoordinateSystemType()==osgTerrain::Locator::GEOCENTRIC)
+        {
+            // note y axis maps to latitude, x axis to longitude
+            em->convertLatLongHeightToXYZ(bottom_left.y(), bottom_left.x(), bottom_left.z(), bottom_left.x(), bottom_left.y(), bottom_left.z());
+            em->convertLatLongHeightToXYZ(top_right.y(), top_right.x(), top_right.z(), top_right.x(), top_right.y(), top_right.z());
+        }
+
+        double diagonalLength = (top_right-bottom_left).length();
+        double skirtRatio = 0.02;
+        skirtHeight = -diagonalLength*skirtRatio;
     }
-
-    double diagonalLength = (top_right-bottom_left).length();
-    double skirtRatio = 0.02;
-    double skirtHeight = -diagonalLength*skirtRatio;
-
 
     // set up the vertex data
     {
+        osg::Vec3d pos(0.0, 0.0, 0.0);
+        osg::Vec3d normal(0.0, 0.0, 1.0);
+        osg::Vec2 delta(1.0f/static_cast<float>(nx), 1.0f/static_cast<float>(ny));
+
         // bottom row for skirt
         pos.y () = static_cast<double>(0)*r_mult;
         pos.z() = skirtHeight;
@@ -567,11 +571,11 @@ osg::ref_ptr<osg::MatrixTransform> GeometryPool::getTileSubgraph(osgTerrain::Ter
 osg::ref_ptr<osg::Program> GeometryPool::getOrCreateProgram(LayerTypes& layerTypes)
 {
     //OpenThreads::ScopedLock<OpenThreads::Mutex>  lock(_programMapMutex);
-    ProgramMap::iterator itr = _programMap.find(layerTypes);
-    if (itr!=_programMap.end())
+    ProgramMap::iterator p_itr = _programMap.find(layerTypes);
+    if (p_itr!=_programMap.end())
     {
-        // OSG_NOTICE<<") returning existing Program "<<itr->second.get()<<std::endl;
-        return itr->second.get();
+        // OSG_NOTICE<<") returning existing Program "<<p_itr->second.get()<<std::endl;
+        return p_itr->second.get();
     }
 
 #if 1
@@ -601,21 +605,18 @@ osg::ref_ptr<osg::Program> GeometryPool::getOrCreateProgram(LayerTypes& layerTyp
     _programMap[layerTypes] = program;
 
     // add shader that provides the lighting functions
-    program->addShader(osgDB::readShaderFile("shaders/lighting.vert"));
+    program->addShader(osgDB::readRefShaderFile("shaders/lighting.vert"));
 
     // OSG_NOTICE<<") creating new Program "<<program.get()<<std::endl;
     {
         #include "shaders/terrain_displacement_mapping_vert.cpp"
-        osg::ref_ptr<osg::Shader> shader = osgDB::readShaderFileWithFallback(osg::Shader::VERTEX, "shaders/terrain_displacement_mapping.vert", terrain_displacement_mapping_vert);
-
-        program->addShader(shader.get());
+        program->addShader(osgDB::readRefShaderFileWithFallback(osg::Shader::VERTEX, "shaders/terrain_displacement_mapping.vert", terrain_displacement_mapping_vert));
     }
 
 
     {
         #include "shaders/terrain_displacement_mapping_geom.cpp"
-        osg::ref_ptr<osg::Shader> shader = osgDB::readShaderFileWithFallback(osg::Shader::GEOMETRY, "shaders/terrain_displacement_mapping.geom", terrain_displacement_mapping_geom);
-        program->addShader(shader.get());
+        program->addShader(osgDB::readRefShaderFileWithFallback(osg::Shader::GEOMETRY, "shaders/terrain_displacement_mapping.geom", terrain_displacement_mapping_geom));
 
         program->setParameter( GL_GEOMETRY_VERTICES_OUT, 4 );
         program->setParameter( GL_GEOMETRY_INPUT_TYPE, GL_LINES_ADJACENCY );
@@ -629,13 +630,7 @@ osg::ref_ptr<osg::Program> GeometryPool::getOrCreateProgram(LayerTypes& layerTyp
 
     {
         #include "shaders/terrain_displacement_mapping_frag.cpp"
-        osg::ref_ptr<osg::Shader> shader = osgDB::readShaderFileWithFallback(osg::Shader::FRAGMENT, "shaders/terrain_displacement_mapping.frag", terrain_displacement_mapping_frag);
-
-        if (shader.valid())
-        {
-            program->addShader(shader.get());
-        }
-
+        program->addShader(osgDB::readRefShaderFileWithFallback(osg::Shader::FRAGMENT, "shaders/terrain_displacement_mapping.frag", terrain_displacement_mapping_frag));
     }
 
     return program;
@@ -817,7 +812,7 @@ void GeometryPool::applyLayers(osgTerrain::TerrainTile* tile, osg::StateSet* sta
     }
 }
 
-osg::StateSet* GeometryPool::getRootStateSetForTerrain(Terrain* terrain)
+osg::StateSet* GeometryPool::getRootStateSetForTerrain(Terrain* /*terrain*/)
 {
     //OSG_NOTICE<<"getRootStateSetForTerrain("<<terrain<<")"<<std::endl;
     return _rootStateSet.get();
@@ -962,27 +957,22 @@ void SharedGeometry::drawImplementation(osg::RenderInfo& renderInfo) const
     GLenum primitiveType = computeDiagonals ? GL_LINES_ADJACENCY : GL_QUADS;
 
     osg::GLBufferObject* ebo = _drawElements->getOrCreateGLBufferObject(state.getContextID());
-    state.bindElementBufferObject(ebo);
 
-    glDrawElements(primitiveType, _drawElements->getNumIndices(), _drawElements->getDataType(), (const GLvoid *)(ebo->getOffset(_drawElements->getBufferIndex())));
-
-
-    // unbind the VBO's if any are used.
-    state.unbindVertexBufferObject();
-    state.unbindElementBufferObject();
-
-#if 0
-    if (computeDiagonals)
+    if (ebo)
     {
-        if (state.checkGLErrors("End of SharedGeometry::drawImplementation. computeDiagonals=TRUE")) {}
-        else OSG_NOTICE<<"SharedGeometry::drawImplementation. OK computeDiagonals=TRUE"<<std::endl;
+        state.bindElementBufferObject(ebo);
+
+        glDrawElements(primitiveType, _drawElements->getNumIndices(), _drawElements->getDataType(), (const GLvoid *)(ebo->getOffset(_drawElements->getBufferIndex())));
+
+        state.unbindElementBufferObject();
     }
     else
     {
-        if (state.checkGLErrors("End of SharedGeometry::drawImplementation. computeDiagonals=FALSE")) {}
-        else OSG_NOTICE<<"SharedGeometry::drawImplementation. OK computeDiagonals=FALSE"<<std::endl;
+        glDrawElements(primitiveType, _drawElements->getNumIndices(), _drawElements->getDataType(), _drawElements->getDataPointer());
     }
-#endif
+
+    // unbind the VBO's if any are used.
+    state.unbindVertexBufferObject();
 
     if (checkForGLErrors) state.checkGLErrors("end of SharedGeometry::drawImplementation().");
 }

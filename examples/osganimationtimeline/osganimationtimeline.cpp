@@ -38,7 +38,7 @@
 
 struct NoseBegin : public osgAnimation::Action::Callback
 {
-    virtual void operator()(osgAnimation::Action* action, osgAnimation::ActionVisitor* nv)
+    virtual void operator()(osgAnimation::Action* action, osgAnimation::ActionVisitor* /*nv*/)
     {
         std::cout << "sacrebleu, it scratches my nose, let me scratch it" << std::endl;
         std::cout << "process NoseBegin call back " << action->getName() << std::endl << std::endl;
@@ -47,7 +47,7 @@ struct NoseBegin : public osgAnimation::Action::Callback
 
 struct NoseEnd : public osgAnimation::Action::Callback
 {
-    virtual void operator()(osgAnimation::Action* action, osgAnimation::ActionVisitor* nv)
+    virtual void operator()(osgAnimation::Action* action, osgAnimation::ActionVisitor* /*nv*/)
     {
         std::cout << "shhhrt shrrrrt shhhhhhrrrrt, haaa it's better"<< std::endl;
         std::cout << "process NoseEnd call back " << action->getName() << std::endl << std::endl;
@@ -129,7 +129,7 @@ struct ExampleTimelineUsage : public osgGA::GUIEventHandler
             if (_releaseKey) // we hit a key and release it execute an action
             {
                 osgAnimation::Timeline* tml = _manager->getTimeline();
-                // dont play if already playing
+                // don't play if already playing
                 if (!tml->isActive(_scratchNose.get()))
                 {
                     // add this animation on top of two other
@@ -163,7 +163,8 @@ int main (int argc, char* argv[])
         file = psr[1];
 
     // replace the manager
-    osg::Group* root = dynamic_cast<osg::Group*>(osgDB::readNodeFile(file));
+    osg::ref_ptr<osg::Node> loadedmodel = osgDB::readRefNodeFile(file);
+    osg::Group* root = dynamic_cast<osg::Group*>(loadedmodel.get());
     if (!root) {
         osg::notify(osg::FATAL) << "can't read file " << file << std::endl;
         return 1;

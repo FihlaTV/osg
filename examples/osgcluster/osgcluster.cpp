@@ -74,7 +74,7 @@ class CameraPacket {
         void writeEventQueue(osgViewer::Viewer& viewer);
 
         void setMasterKilled(const bool flag) { _masterKilled = flag; }
-        const bool getMasterKilled() const { return _masterKilled; }
+        bool getMasterKilled() const { return _masterKilled; }
 
         unsigned int    _byte_order;
         bool            _masterKilled;
@@ -491,7 +491,7 @@ int main( int argc, char **argv )
     // any option left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();
 
-    // report any errors if they have occured when parsing the program aguments.
+    // report any errors if they have occurred when parsing the program aguments.
     if (arguments.errors())
     {
         arguments.writeErrorMessages(std::cout);
@@ -505,7 +505,7 @@ int main( int argc, char **argv )
     }
 
     // load model.
-    osg::ref_ptr<osg::Node> rootnode = osgDB::readNodeFiles(arguments);
+    osg::ref_ptr<osg::Node> rootnode = osgDB::readRefNodeFiles(arguments);
 
     // set the scene to render
     viewer.setSceneData(rootnode.get());
@@ -541,7 +541,7 @@ int main( int argc, char **argv )
 
     CameraPacket *cp = new CameraPacket;
 
-    // objects for managing the broadcasting and recieving of camera packets.
+    // objects for managing the broadcasting and receiving of camera packets.
     Broadcaster     bc;
     Receiver        rc;
 

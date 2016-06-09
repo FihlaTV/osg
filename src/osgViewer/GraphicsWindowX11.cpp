@@ -738,7 +738,14 @@ void GraphicsWindowX11::init()
 
         EGLConfig eglConfig = 0;
 
-        #if defined(OSG_GLES2_AVAILABLE)
+        #if defined(OSG_GLES3_AVAILABLE)
+
+            #ifndef EGL_OPENGL_ES3_BIT
+                #define EGL_OPENGL_ES3_BIT 0x00000040
+            #endif
+            #define OSG_EGL_OPENGL_TARGET_BIT EGL_OPENGL_ES3_BIT
+
+        #elif defined(OSG_GLES2_AVAILABLE)
             #define OSG_EGL_OPENGL_TARGET_BIT EGL_OPENGL_ES2_BIT
         #else
             #define OSG_EGL_OPENGL_TARGET_BIT EGL_OPENGL_ES_BIT
@@ -1220,6 +1227,7 @@ bool GraphicsWindowX11::checkEvents()
     int windowY = _traits->y;
     int windowWidth = _traits->width;
     int windowHeight = _traits->height;
+    bool needNewWindowSize = false;
 
     Time firstEventTime = 0;
 
@@ -1275,6 +1283,7 @@ bool GraphicsWindowX11::checkEvents()
                     windowWidth = ev.xconfigure.width;
                     windowHeight = ev.xconfigure.height;
                 }
+                needNewWindowSize = true;
 
                 break;
             }
@@ -1294,6 +1303,7 @@ bool GraphicsWindowX11::checkEvents()
                     windowWidth = watt.width;
                     windowHeight = watt.height;
                 }
+                needNewWindowSize = true;
 
                 break;
             }
@@ -1552,6 +1562,7 @@ bool GraphicsWindowX11::checkEvents()
 
 
     // get window geometry relative to root window/screen
+    if (needNewWindowSize)
     {
         XWindowAttributes watt;
         Window child_return;
@@ -2133,6 +2144,12 @@ public:
 
 };
 
+#if 1
+
+REGISTER_WINDOWINGSYSTEMINTERFACE(X11, X11WindowingSystemInterface)
+
+
+#else
 struct RegisterWindowingSystemInterfaceProxy
 {
     RegisterWindowingSystemInterfaceProxy()
@@ -2155,7 +2172,6 @@ struct RegisterWindowingSystemInterfaceProxy
 
     }
 };
-
 RegisterWindowingSystemInterfaceProxy createWindowingSystemInterfaceProxy;
 
 // declare C entry point for static compilation.
@@ -2163,6 +2179,7 @@ extern "C" void graphicswindow_X11(void)
 {
     osg::GraphicsContext::setWindowingSystemInterface(new X11WindowingSystemInterface);
 }
+#endif
 
 void GraphicsWindowX11::raiseWindow()
 {

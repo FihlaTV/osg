@@ -24,6 +24,7 @@
 #include <osg/ColorMatrix>
 #include <osg/LightModel>
 #include <osg/CollectOccludersVisitor>
+#include <osg/ContextData>
 
 #include <osg/GLU>
 
@@ -579,7 +580,7 @@ void SceneView::computeRightEyeViewport(const osg::Viewport *viewport)
 void SceneView::setLightingMode(LightingMode mode)
 {
     if (mode==_lightingMode) return;
-    
+
     osg::StateSet* stateSetToModify = _secondaryStateSet.valid() ? _secondaryStateSet.get() : _globalStateSet.get();
 
     if (_lightingMode!=NO_SCENEVIEW_LIGHT)
@@ -718,13 +719,13 @@ void SceneView::cull()
         else
         {
 
-            if (!_cullVisitorLeft.valid()) _cullVisitorLeft = dynamic_cast<CullVisitor*>(_cullVisitor->clone());
-            if (!_stateGraphLeft.valid()) _stateGraphLeft = dynamic_cast<StateGraph*>(_stateGraph->cloneType());
-            if (!_renderStageLeft.valid()) _renderStageLeft = dynamic_cast<RenderStage*>(_renderStage->clone(osg::CopyOp::DEEP_COPY_ALL));
+            if (!_cullVisitorLeft.valid()) _cullVisitorLeft = _cullVisitor->clone();
+            if (!_stateGraphLeft.valid()) _stateGraphLeft = _stateGraph->cloneType();
+            if (!_renderStageLeft.valid()) _renderStageLeft = osg::clone(_renderStage.get(), osg::CopyOp::DEEP_COPY_ALL);
 
-            if (!_cullVisitorRight.valid()) _cullVisitorRight = dynamic_cast<CullVisitor*>(_cullVisitor->clone());
-            if (!_stateGraphRight.valid()) _stateGraphRight = dynamic_cast<StateGraph*>(_stateGraph->cloneType());
-            if (!_renderStageRight.valid()) _renderStageRight = dynamic_cast<RenderStage*>(_renderStage->clone(osg::CopyOp::DEEP_COPY_ALL));
+            if (!_cullVisitorRight.valid()) _cullVisitorRight = _cullVisitor->clone();
+            if (!_stateGraphRight.valid()) _stateGraphRight = _stateGraph->cloneType();
+            if (!_renderStageRight.valid()) _renderStageRight = osg::clone(_renderStage.get(), osg::CopyOp::DEEP_COPY_ALL);
 
             _cullVisitorLeft->setDatabaseRequestHandler(_cullVisitor->getDatabaseRequestHandler());
             _cullVisitorLeft->setClampProjectionMatrixCallback(_cullVisitor->getClampProjectionMatrixCallback());
@@ -963,11 +964,7 @@ void SceneView::draw()
 
     state->initializeExtensionProcs();
 
-    osg::Texture::TextureObjectManager* tom = osg::Texture::getTextureObjectManager(state->getContextID()).get();
-    tom->newFrame(state->getFrameStamp());
-
-    osg::GLBufferObjectManager* bom = osg::GLBufferObjectManager::getGLBufferObjectManager(state->getContextID()).get();
-    bom->newFrame(state->getFrameStamp());
+    osg::get<ContextData>(state->getContextID())->newFrame(state->getFrameStamp());
 
     if (!_initCalled) init();
 

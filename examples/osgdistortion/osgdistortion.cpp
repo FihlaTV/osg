@@ -79,9 +79,7 @@ struct CommandLineOptions
             return;
         }
 
-        unsigned int width, height;
         wsi->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), width, height);
-
         distance = sqrt(sphere_radius*sphere_radius - collar_radius*collar_radius);
     }
 
@@ -108,7 +106,7 @@ public:
     {
     }
 
-    virtual bool handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa, osg::Object* object, osg::NodeVisitor* nv)
+    virtual bool handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& /*aa*/, osg::Object* object, osg::NodeVisitor* nv)
     {
         osg::Camera* camera = dynamic_cast<osg::Camera*>(object);
         if (!camera) return false;
@@ -558,9 +556,9 @@ void setDomeCorrection(osgViewer::Viewer& viewer, CommandLineOptions& options)
         camera->setName("Top face camera");
         camera->setGraphicsContext(gc.get());
         camera->setViewport(new osg::Viewport(0,0,camera_width, camera_height));
-        GLenum buffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
-        camera->setDrawBuffer(buffer);
-        camera->setReadBuffer(buffer);
+        GLenum cbuffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
+        camera->setDrawBuffer(cbuffer);
+        camera->setReadBuffer(cbuffer);
         camera->setAllowEventFocus(false);
 
         // tell the camera to use OpenGL frame buffer object where supported.
@@ -668,9 +666,9 @@ void setDomeCorrection(osgViewer::Viewer& viewer, CommandLineOptions& options)
         camera->setClearMask(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
         camera->setClearColor( osg::Vec4(0.1,0.1,1.0,1.0) );
         camera->setViewport(new osg::Viewport(0, 0, options.width, options.height));
-        GLenum buffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
-        camera->setDrawBuffer(buffer);
-        camera->setReadBuffer(buffer);
+        GLenum cbuffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
+        camera->setDrawBuffer(cbuffer);
+        camera->setReadBuffer(cbuffer);
         camera->setReferenceFrame(osg::Camera::ABSOLUTE_RF);
         camera->setAllowEventFocus(false);
         //camera->setInheritanceMask(camera->getInheritanceMask() & ~osg::CullSettings::CLEAR_COLOR & ~osg::CullSettings::COMPUTE_NEAR_FAR_MODE);
@@ -703,10 +701,10 @@ int main(int argc, char** argv)
     osgViewer::Viewer viewer(arguments);
 
     // load the nodes from the commandline arguments.
-    osg::Node* loadedModel = osgDB::readNodeFiles(arguments);
+    osg::ref_ptr<osg::Node> loadedModel = osgDB::readRefNodeFiles(arguments);
 
     // if not loaded assume no arguments passed in, try use default mode instead.
-    if (!loadedModel) loadedModel = osgDB::readNodeFile("cow.osgt");
+    if (!loadedModel) loadedModel = osgDB::readRefNodeFile("cow.osgt");
 
     if (!loadedModel)
     {
@@ -731,7 +729,7 @@ int main(int argc, char** argv)
     }
     else
     {
-        osg::Node* distortionNode = createDistortionSubgraph( options, loadedModel, viewer.getCamera()->getClearColor());
+        osg::Node* distortionNode = createDistortionSubgraph( options, loadedModel.get(), viewer.getCamera()->getClearColor());
         viewer.setSceneData( distortionNode );
     }
 

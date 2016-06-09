@@ -262,7 +262,8 @@ bool Geometry::addPrimitiveSet(PrimitiveSet* primitiveset)
         dirtyBound();
         return true;
     }
-    OSG_WARN<<"Warning: invalid index i or primitiveset passed to osg::Geometry::addPrimitiveSet(i,primitiveset), ignoring call."<<std::endl;
+
+    OSG_WARN<<"Warning: invalid primitiveset passed to osg::Geometry::addPrimitiveSet(i, primitiveset), ignoring call."<<std::endl;
     return false;
 }
 
@@ -1042,7 +1043,7 @@ Geometry* osg::createTexturedQuadGeometry(const Vec3& corner,const Vec3& widthVe
     geom->setNormalArray(normals, osg::Array::BIND_OVERALL);
 
 
-#if defined(OSG_GLES1_AVAILABLE) || !defined(OSG_GLES2_AVAILABLE)
+#if defined(OSG_GLES1_AVAILABLE) || defined(OSG_GLES2_AVAILABLE)
     DrawElementsUByte* elems = new DrawElementsUByte(PrimitiveSet::TRIANGLES);
     elems->push_back(0);
     elems->push_back(1);
@@ -1503,11 +1504,11 @@ void Geometry::fixDeprecatedData()
     // we start processing the primitive sets.
     int target_vindex = 0;
     int source_pindex = -1; // equals primitiveNum
-    for(PrimitiveSetList::iterator itr = _primitives.begin();
-        itr != _primitives.end();
-        ++itr)
+    for(PrimitiveSetList::iterator prim_itr = _primitives.begin();
+        prim_itr != _primitives.end();
+        ++prim_itr)
     {
-        osg::PrimitiveSet* primitiveset = itr->get();
+        osg::PrimitiveSet* primitiveset = prim_itr->get();
         GLenum mode=primitiveset->getMode();
 
         unsigned int primLength;

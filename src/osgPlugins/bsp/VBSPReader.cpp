@@ -436,7 +436,7 @@ void VBSPReader::processDispVerts(std::istream & str, int offset, int length)
 }
 
 
-void VBSPReader::processGameData(std::istream & str, int offset, int length)
+void VBSPReader::processGameData(std::istream & str, int offset, int /*length*/)
 {
     GameHeader    gameHeader;
     GameLump *    gameLumps;
@@ -467,7 +467,7 @@ void VBSPReader::processGameData(std::istream & str, int offset, int length)
 }
 
 
-void VBSPReader::processStaticProps(std::istream & str, int offset, int length,
+void VBSPReader::processStaticProps(std::istream & str, int offset, int /*length*/,
                                     int lumpVersion)
 {
     StaticPropModelNames    sprpModelNames;
@@ -1094,7 +1094,7 @@ void VBSPReader::createScene()
 
         // Load the prop's model
         propModel = bsp_data->getStaticPropModel(staticProp.prop_type);
-        propNode = osgDB::readNodeFile(propModel);
+        propNode = osgDB::readRefNodeFile(propModel);
 
         // If we loaded the prop correctly, add it to the scene
         if (propNode.valid())

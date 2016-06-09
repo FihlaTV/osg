@@ -305,7 +305,7 @@ bool WhiteListTileLoadedCallback::readImageLayer(osgTerrain::ImageLayer* imageLa
     {
         if (layerAcceptable(imageLayer->getSetName()))
         {
-            osg::ref_ptr<osg::Image> image = osgDB::readImageFile(imageLayer->getFileName(), options);
+            osg::ref_ptr<osg::Image> image = osgDB::readRefImageFile(imageLayer->getFileName(), options);
             imageLayer->setImage(image.get());
         }
     }
@@ -324,10 +324,10 @@ void WhiteListTileLoadedCallback::loaded(osgTerrain::TerrainTile* tile, const os
     for(unsigned int i=0; i<tile->getNumColorLayers(); ++i)
     {
         osgTerrain::Layer* layer = tile->getColorLayer(i);
-        osgTerrain::ImageLayer* imageLayer = dynamic_cast<osgTerrain::ImageLayer*>(layer);
-        if (imageLayer)
+        osgTerrain::ImageLayer* color_imageLayer = dynamic_cast<osgTerrain::ImageLayer*>(layer);
+        if (color_imageLayer)
         {
-            readImageLayer(imageLayer, options);
+            readImageLayer(color_imageLayer, options);
             continue;
         }
 
@@ -372,12 +372,12 @@ void WhiteListTileLoadedCallback::loaded(osgTerrain::TerrainTile* tile, const os
     for(unsigned int i=0; i<tile->getNumColorLayers(); ++i)
     {
         osgTerrain::Layer* layer = tile->getColorLayer(i);
-        osgTerrain::ImageLayer* imageLayer = dynamic_cast<osgTerrain::ImageLayer*>(layer);
-        if (imageLayer)
+        osgTerrain::ImageLayer* color_imageLayer = dynamic_cast<osgTerrain::ImageLayer*>(layer);
+        if (color_imageLayer)
         {
-            if (imageLayer->getImage()!=0)
+            if (color_imageLayer->getImage()!=0)
             {
-                validLayer = imageLayer;
+                validLayer = color_imageLayer;
             }
             continue;
         }
@@ -417,10 +417,10 @@ void WhiteListTileLoadedCallback::loaded(osgTerrain::TerrainTile* tile, const os
         for(unsigned int i=0; i<tile->getNumColorLayers(); ++i)
         {
             osgTerrain::Layer* layer = tile->getColorLayer(i);
-            osgTerrain::ImageLayer* imageLayer = dynamic_cast<osgTerrain::ImageLayer*>(layer);
-            if (imageLayer)
+            osgTerrain::ImageLayer* color_imageLayer = dynamic_cast<osgTerrain::ImageLayer*>(layer);
+            if (color_imageLayer)
             {
-                if (imageLayer->getImage()==0)
+                if (color_imageLayer->getImage()==0)
                 {
                     tile->setColorLayer(i, validLayer);
                     break;

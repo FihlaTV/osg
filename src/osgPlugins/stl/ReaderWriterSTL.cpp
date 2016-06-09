@@ -25,6 +25,7 @@
 
 #include <osg/Notify>
 #include <osg/Endian>
+#include <osg/Types>
 
 #include <osgDB/Registry>
 #include <osgDB/ReadFile>
@@ -43,23 +44,6 @@
 #include <sys/stat.h>
 
 #include <string.h>
-
-
-#if defined(_WIN32) && !defined(__MINGW32__) && (!defined(_MSC_VER) || _MSC_VER<1600)
-
-typedef unsigned __int8 uint8_t;
-typedef unsigned __int16 uint16_t;
-typedef unsigned __int32 uint32_t;
-typedef signed __int8 int8_t;
-typedef signed __int16 int16_t;
-typedef signed __int32 int32_t;
-
-#else
-
-#include <stdint.h>
-
-#endif
-
 #include <memory>
 
 struct STLOptionsStruct {
@@ -362,7 +346,7 @@ private:
             osg::Matrix m_mat;
             bool m_dontSaveNormals;
 
-            inline void operator () (const osg::Vec3& _v1, const osg::Vec3& _v2, const osg::Vec3& _v3, bool treatVertexDataAsTemporary)
+            inline void operator () (const osg::Vec3& _v1, const osg::Vec3& _v2, const osg::Vec3& _v3, bool /*treatVertexDataAsTemporary*/)
             {
                 osg::Vec3 v1 = _v1 * m_mat;
                 osg::Vec3 v2 = _v2 * m_mat;
@@ -453,7 +437,7 @@ osgDB::ReaderWriter::ReadResult ReaderWriterSTL::readNode(const std::string& fil
 
     if (sizeof(unsigned int) != 4)
     {
-        OSG_NOTICE<<"Waring: STL reading not supported as unsigned int is not 4 bytes on this system."<<std::endl;
+        OSG_NOTICE<<"Warning: STL reading not supported as unsigned int is not 4 bytes on this system."<<std::endl;
         return ReadResult::ERROR_IN_READING_FILE;
     }
 
